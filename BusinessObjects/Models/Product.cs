@@ -19,6 +19,9 @@ namespace BusinessObjects.Models
         public string Description { get; set; }
         public int Quantity { get; set; }
         public DateTime ImportedDate { get; set; }
+        public string ImgUrl { get; set; }
+        public bool IsDeleted { get; set; } = false;
+        public int Version { get; set; } = 1;
 
         [ForeignKey("CategoryID")]
         public virtual Category Category { get; set; }

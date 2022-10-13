@@ -4,6 +4,7 @@ using BusinessObjects.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BusinessObjects.Migrations
 {
     [DbContext(typeof(NashStoreDbContext))]
-    partial class NashStoreDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221012084442_Add Img URL to Product Entity")]
+    partial class AddImgURLtoProductEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -115,9 +117,6 @@ namespace BusinessObjects.Migrations
                     b.Property<DateTime>("ImportedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -126,9 +125,6 @@ namespace BusinessObjects.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Version")
                         .HasColumnType("int");
 
                     b.HasKey("ID");
