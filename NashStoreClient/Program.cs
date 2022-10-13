@@ -1,8 +1,8 @@
 using BusinessObjects.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-
-
+using NashStoreClient.DataAccess;
+using Refit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +12,14 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<NashStoreDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+});
+
+//builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+//    .AddEntityFrameworkStores<NashStoreDbContext>();
+
+builder.Services.AddRefitClient<IProductData>().ConfigureHttpClient(c =>
+{
+    c.BaseAddress = new Uri("https://localhost:7068/api");
 });
 
 builder.Services.AddIdentity<User, IdentityRole>()
