@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BusinessObjects.Models;
+using DTO.Models;
 
 namespace NashStoreAPI.Controllers
 {
@@ -22,9 +23,15 @@ namespace NashStoreAPI.Controllers
 
         // GET: api/Categories
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
+        public async Task<ActionResult<IEnumerable<ViewCategoryModel>>> GetCategories()
         {
-            return await _context.Categories.ToListAsync();
+            var cateResponse = await _context.Categories.ToListAsync();
+            var categories = new List<ViewCategoryModel>();
+            foreach (var item in cateResponse)
+            {
+                categories.Add(new ViewCategoryModel { CateId = item.ID, Name = item.Name });
+            }
+            return categories;
         }
 
         // GET: api/Categories/5
