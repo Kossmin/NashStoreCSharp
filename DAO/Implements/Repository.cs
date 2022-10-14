@@ -1,5 +1,6 @@
 ﻿using BusinessObjects.Models;
 using DAO.Interfaces;
+using DTO.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
@@ -35,7 +36,7 @@ namespace DAO.Implements
             return _nashStoreDbContext.Set<T>().Where(expression);
         }
 
-        public Task<List<T>> PagingAsync(IQueryable<T> records, int pageIndex = 1, int pageSize = 10)
+        public async Task<ViewListModel<T>> PagingAsync(IQueryable<T> records, int pageIndex, int pageSize)
         {
             var maxNumberOfPage = records.Count()/pageSize;
             if(records.Count() % pageSize > 0)
@@ -46,7 +47,8 @@ namespace DAO.Implements
             {
                 throw new IndexOutOfRangeException();
             }
-            return records.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
+            var listResult = await records.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
+            return new ViewListModel<T> { ModelDatas = listResult, MaxPage = maxNumberOfPage, PageIndex = pageIndex};
         }
 
         public async Task SaveAsync(T entity)
