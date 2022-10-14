@@ -24,11 +24,77 @@ namespace NashStoreAPI.Controllers
 
         // GET: api/Products
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts([FromQuery] int pageIndex)
+        public async Task<ActionResult<ViewListModel<ViewProductModel>>> GetAllProducts([FromQuery] int pageIndex)
         {
             try
             {
-                return await _context.PagingAsync(_context.GetAll(),pageIndex);
+                var productsData = await _context.PagingAsync(_context.GetAll(),pageIndex);
+
+                List<ViewProductModel> products = new List<ViewProductModel>();
+                foreach (var item in productsData.ModelDatas)
+                {
+                    var categoryName = item.Category.Name;
+                    item.Category = null;
+                    var product = item;
+                    products.Add(new ViewProductModel
+                    {
+                        CategoryName = categoryName,
+                        Product = product,
+                    });
+                }
+                return new ViewListModel<ViewProductModel> { ModelDatas = products, MaxPage = 0, PageIndex = pageIndex};
+            }
+            catch (IndexOutOfRangeException ex)
+            {
+                return BadRequest("Can't find this page");
+            }
+        }
+
+        [HttpGet("available")]
+        public async Task<ActionResult<ViewListModel<ViewProductModel>>> GetAvailableProducts([FromQuery] int pageIndex)
+        {
+            try
+            {
+                var productsData = await _context.PagingAsync(_context.GetMany(p => p.IsDeleted == false), pageIndex);
+                List<ViewProductModel> products = new List<ViewProductModel>();
+                foreach (var item in productsData.ModelDatas)
+                {
+                    var categoryName = item.Category.Name;
+                    item.Category = null;
+                    var product = item;
+                    products.Add(new ViewProductModel
+                    {
+                        CategoryName = categoryName,
+                        Product = product,
+                    });
+                }
+                return new ViewListModel<ViewProductModel> { ModelDatas = products, PageIndex = productsData.PageIndex, MaxPage = productsData.MaxPage};
+            }
+            catch (IndexOutOfRangeException ex)
+            {
+                return BadRequest("Can't find this page");
+            }
+        }
+
+        [HttpGet("unavailable")]
+        public async Task<ActionResult<ViewListModel<ViewProductModel>>> GetUnAvailableProducts([FromQuery] int pageIndex)
+        {
+            try
+            {
+                var productsData = await _context.PagingAsync(_context.GetMany(p => p.IsDeleted == true), pageIndex);
+                List<ViewProductModel> products = new List<ViewProductModel>();
+                foreach (var item in productsData.ModelDatas)
+                {
+                    var categoryName = item.Category.Name;
+                    item.Category = null;
+                    var product = item;
+                    products.Add(new ViewProductModel
+                    {
+                        CategoryName = categoryName,
+                        Product = product,
+                    });
+                }
+                return new ViewListModel<ViewProductModel> { ModelDatas = products, MaxPage = productsData.MaxPage, PageIndex = productsData.PageIndex };
             }
             catch (IndexOutOfRangeException ex)
             {
@@ -37,23 +103,41 @@ namespace NashStoreAPI.Controllers
         }
 
         [HttpPost("search")]
-        public async Task<ActionResult<List<Product>>> GetProductByName([FromBody]RequestGetProductModel requestModel){
+        public async Task<ActionResult<ViewListModel<ViewProductModel>>> GetProductByName([FromBody]RequestSearchProductModel requestModel){
             try
             {
+                var responseData = new ViewListModel<Product>();
                 if (string.IsNullOrEmpty(requestModel.ProductName) && requestModel.CategoryId <= 0)
                 {
                     return NotFound();
                 }
                 else if (string.IsNullOrEmpty(requestModel.ProductName))
                 {
-                    return await _context.PagingAsync(_context.GetMany(x => x.CategoryID == requestModel.CategoryId), requestModel.PageIndex);
+                    responseData = await _context.PagingAsync(_context.GetMany(x => x.CategoryID == requestModel.CategoryId), requestModel.PageIndex); 
                 }
                 else if (requestModel.CategoryId == null)
                 {
-                    return await _context.PagingAsync(_context.GetMany(x => x.Name.ToUpper().Contains(requestModel.ProductName.ToUpper())), requestModel.PageIndex);
+                    responseData = await _context.PagingAsync(_context.GetMany(x => x.Name.ToUpper().Contains(requestModel.ProductName.ToUpper())), requestModel.PageIndex);
+                }
+                else
+                {
+                    responseData = await _context.PagingAsync(_context.GetMany(x => x.Name.ToUpper().Contains(requestModel.ProductName.ToUpper()) && x.CategoryID == requestModel.CategoryId), requestModel.PageIndex);
                 }
 
-                return await _context.PagingAsync(_context.GetMany(x => x.Name.ToUpper().Contains(requestModel.ProductName.ToUpper()) && x.CategoryID == requestModel.CategoryId), requestModel.PageIndex);
+
+                List<ViewProductModel> products = new List<ViewProductModel>();
+                foreach (var item in responseData.ModelDatas)
+                {
+                    var categoryName = item.Category.Name;
+                    item.Category = null;
+                    var product = item;
+                    products.Add(new ViewProductModel
+                    {
+                        CategoryName = categoryName,
+                        Product = product,
+                    });
+                }
+                return new ViewListModel<ViewProductModel> { ModelDatas = products, MaxPage = responseData.MaxPage, PageIndex = responseData.PageIndex };
             }
             catch (IndexOutOfRangeException ex)
             {
