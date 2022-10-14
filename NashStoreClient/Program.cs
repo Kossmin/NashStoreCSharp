@@ -17,14 +17,10 @@ builder.Services.AddDbContext<NashStoreDbContext>(options =>
 //builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
 //    .AddEntityFrameworkStores<NashStoreDbContext>();
 
-builder.Services.AddRefitClient<IProductData>().ConfigureHttpClient(c =>
+builder.Services.AddRefitClient<IData>().ConfigureHttpClient(c =>
 {
     c.BaseAddress = new Uri("https://localhost:7068/api");
 });
-
-builder.Services.AddIdentity<User, IdentityRole>()
-        .AddEntityFrameworkStores<NashStoreDbContext>()
-        .AddDefaultTokenProviders();
 
 
 var app = builder.Build();
