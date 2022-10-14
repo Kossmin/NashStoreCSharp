@@ -19,7 +19,7 @@ namespace NashStoreClient.Controllers
         }
 
         // GET: Products
-        public async Task<IActionResult> Index(int pageIndex = 1)
+        public async Task<IActionResult> Index([FromQuery]int pageIndex = 1)
         {
             var productsList = await _productData.GetProducts(pageIndex);
             return View(productsList);
