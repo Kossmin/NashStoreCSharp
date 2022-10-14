@@ -1,6 +1,6 @@
 ﻿namespace DTO.Models
 {
-    public class RequestGetProductModel
+    public class RequestSearchProductModel
     {
         public int PageIndex { get; set; }
         public string ProductName { get; set; } = "";
