@@ -7,13 +7,13 @@ namespace NashStoreClient.DataAccess
 {
     public interface IProductData
     {
-        [Get("/Products")]
-        Task<List<Product>> GetProducts([FromQuery]int pageIndex);
+        [Get("/Products/available")]
+        Task<ViewListModel<ViewProductModel>> GetProducts([FromQuery]int pageIndex);
 
         [Get("/Products/{id}")]
         Task<Product> GetProductById([FromRoute] int id);
 
         [Post("/Products/search")]
-        Task<List<Product>> Searching(RequestGetProductModel model);
+        Task<List<Product>> Searching(RequestSearchProductModel model);
     }
 }
