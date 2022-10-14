@@ -1,86 +1,130 @@
-﻿@model IEnumerable<BusinessObjects.Models.Product>
+﻿
+@model DTO.Models.ViewListModel<ViewProductModel>
 
 @{
-    ViewData["Title"] = "View";
-    //Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>View</h1>
+<h1>Index</h1>
 
 <div class="container-fluid">
-    <div class="col-md-3">Search bar</div>
-    <div class="col-md-9">
-        @foreach (var item in Model)
+    <div class="row">
+        @foreach (var item in Model.ModelDatas)
         {
-            <div class="card" style="width: 18rem;">
-                <img src=@item.ImgUrl class="card-img-top" alt="...">
+            <div class="card col-md-3 me-2">
+                <img src=@item.Product.ImgUrl class="card-img-top" alt="...">
                   <div class="card-body">
-                    <h5 class="card-title">@item.Name</h5>
+                    <h5 class="card-title">@item.Product.Name</h5>
                     <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
+                    <a asp-action="Details" asp-route-id="@item.Product.ID"  class="btn btn-primary">Details</a>
                   </div>
-            </div>
+                </div>
         }
     </div>
 </div>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Price)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Quantity)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ImportedDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ImgUrl)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Category)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Price)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Quantity)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ImportedDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ImgUrl)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Category.Name)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.ID">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+<nav aria-label="...">
+  <ul class="pagination">
+        @if(Model.MaxPage > 1 && Model.PageIndex != 1)
+        {
+            <li class="page-item">
+                @Html.ActionLink("Previous", "Index", "Products",new {pageIndex = Model.PageIndex - 1}, new {@class = "page-link"})
+            </li>
+        }
+        else
+        {
+            <li class="page-item disabled">
+                @Html.ActionLink("Previous", "Index", "Products",new {pageIndex = 1}, new {@class = "page-link"})
+            </li>
+        }
+        @{
+            if(Model.MaxPage <= 3)
+            {
+                for (int i = 1; i <= Model.MaxPage ; i++)
+                {
+                    if(i == Model.PageIndex)
+                    {
+                        <li class="page-item active" aria-current="page">
+                            @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item" aria-current="page">
+                            @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
+                        </li>
+                    }
+                }
+            }
+            else
+            {
+                if(Model.PageIndex == 1)
+                {
+                    for (int i = Model.PageIndex; i <= 3; i++)
+                    {
+                        if(i == Model.PageIndex)
+                        {
+                            <li class="page-item active" aria-current="page">
+                                @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item" aria-current="page">
+                                @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
+                            </li>
+                        }
+                    }
+                }else if(Model.PageIndex == Model.MaxPage)
+                {
+                    for (int i = Model.PageIndex-2; i <= Model.MaxPage; i++)
+                    {
+                        if(i == Model.PageIndex)
+                        {
+                            <li class="page-item active" aria-current="page">
+                                @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item" aria-current="page">
+                                @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
+                            </li>
+                        }
+                    }
+                }
+                else
+                {
+                    for (int i = Model.PageIndex-1; i <= Model.PageIndex + 1; i++)
+                    {
+                        if(i == Model.PageIndex)
+                        {
+                            <li class="page-item active" aria-current="page">
+                                @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item" aria-current="page">
+                                @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
+                            </li>
+                        }
+                    }
+                }
+            }
+        }
+        @if(Model.PageIndex != Model.MaxPage)
+        {
+            <li class="page-item">
+                @Html.ActionLink("Next", "Index", "Products",new {pageIndex = Model.PageIndex + 1}, new {@class = "page-link"})
+            </li>
+        }
+        else
+        {
+            <li class="page-item disabled">
+                @Html.ActionLink("Next", "Index", "Products",new {pageIndex = 1}, new {@class = "page-link"})
+            </li>
+        }
+  </ul>
+</nav>
