@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using BusinessObjects.Models;
 using DAO.Interfaces;
 using DTO.Models;
+using Microsoft.AspNetCore.Authorization;
+using NashPhaseOne.DTO.Models.Product;
 
 namespace NashStoreAPI.Controllers
 {
@@ -24,25 +26,25 @@ namespace NashStoreAPI.Controllers
 
         // GET: api/Products
         [HttpGet]
-        public async Task<ActionResult<ViewListModel<ViewProductModel>>> GetAllProducts([FromQuery] int pageIndex)
+        public async Task<ActionResult<ViewListDTO<ProductDTO>>> GetAllProducts([FromQuery] int pageIndex)
         {
             try
             {
                 var productsData = await _context.PagingAsync(_context.GetAll(),pageIndex);
 
-                List<ViewProductModel> products = new List<ViewProductModel>();
+                List<ProductDTO> products = new List<ProductDTO>();
                 foreach (var item in productsData.ModelDatas)
                 {
                     var categoryName = item.Category.Name;
                     item.Category = null;
                     var product = item;
-                    products.Add(new ViewProductModel
+                    products.Add(new ProductDTO
                     {
                         CategoryName = categoryName,
                         Product = product,
                     });
                 }
-                return new ViewListModel<ViewProductModel> { ModelDatas = products, MaxPage = 0, PageIndex = pageIndex};
+                return new ViewListDTO<ProductDTO> { ModelDatas = products, MaxPage = 0, PageIndex = pageIndex};
             }
             catch (IndexOutOfRangeException ex)
             {
@@ -51,24 +53,24 @@ namespace NashStoreAPI.Controllers
         }
 
         [HttpGet("available")]
-        public async Task<ActionResult<ViewListModel<ViewProductModel>>> GetAvailableProducts([FromQuery] int pageIndex)
+        public async Task<ActionResult<ViewListDTO<ProductDTO>>> GetAvailableProducts([FromQuery] int pageIndex)
         {
             try
             {
                 var productsData = await _context.PagingAsync(_context.GetMany(p => p.IsDeleted == false), pageIndex);
-                List<ViewProductModel> products = new List<ViewProductModel>();
+                List<ProductDTO> products = new List<ProductDTO>();
                 foreach (var item in productsData.ModelDatas)
                 {
                     var categoryName = item.Category.Name;
                     item.Category = null;
                     var product = item;
-                    products.Add(new ViewProductModel
+                    products.Add(new ProductDTO
                     {
                         CategoryName = categoryName,
                         Product = product,
                     });
                 }
-                return new ViewListModel<ViewProductModel> { ModelDatas = products, PageIndex = productsData.PageIndex, MaxPage = productsData.MaxPage};
+                return new ViewListDTO<ProductDTO> { ModelDatas = products, PageIndex = productsData.PageIndex, MaxPage = productsData.MaxPage};
             }
             catch (IndexOutOfRangeException ex)
             {
@@ -76,25 +78,26 @@ namespace NashStoreAPI.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("unavailable")]
-        public async Task<ActionResult<ViewListModel<ViewProductModel>>> GetUnAvailableProducts([FromQuery] int pageIndex)
+        public async Task<ActionResult<ViewListDTO<ProductDTO>>> GetUnAvailableProducts([FromQuery] int pageIndex)
         {
             try
             {
                 var productsData = await _context.PagingAsync(_context.GetMany(p => p.IsDeleted == true), pageIndex);
-                List<ViewProductModel> products = new List<ViewProductModel>();
+                List<ProductDTO> products = new List<ProductDTO>();
                 foreach (var item in productsData.ModelDatas)
                 {
                     var categoryName = item.Category.Name;
                     item.Category = null;
                     var product = item;
-                    products.Add(new ViewProductModel
+                    products.Add(new ProductDTO
                     {
                         CategoryName = categoryName,
                         Product = product,
                     });
                 }
-                return new ViewListModel<ViewProductModel> { ModelDatas = products, MaxPage = productsData.MaxPage, PageIndex = productsData.PageIndex };
+                return new ViewListDTO<ProductDTO> { ModelDatas = products, MaxPage = productsData.MaxPage, PageIndex = productsData.PageIndex };
             }
             catch (IndexOutOfRangeException ex)
             {
@@ -103,17 +106,17 @@ namespace NashStoreAPI.Controllers
         }
 
         [HttpPost("search")]
-        public async Task<ActionResult<ViewListModel<ViewProductModel>>> GetProductByName([FromBody]RequestSearchProductModel requestModel){
+        public async Task<ActionResult<ViewListDTO<ProductDTO>>> GetProductByName([FromBody]RequestSearchProductDTO requestModel){
             try
             {
-                var responseData = new ViewListModel<Product>();
+                var responseData = new ViewListDTO<Product>();
                 if (string.IsNullOrEmpty(requestModel.ProductName) && requestModel.CategoryId <= 0)
                 {
                     return NotFound();
                 }
                 else if (string.IsNullOrEmpty(requestModel.ProductName))
                 {
-                    responseData = await _context.PagingAsync(_context.GetMany(x => x.CategoryID == requestModel.CategoryId), requestModel.PageIndex); 
+                    responseData = await _context.PagingAsync(_context.GetMany(x => x.CategoryId == requestModel.CategoryId), requestModel.PageIndex); 
                 }
                 else if (requestModel.CategoryId == null)
                 {
@@ -121,23 +124,23 @@ namespace NashStoreAPI.Controllers
                 }
                 else
                 {
-                    responseData = await _context.PagingAsync(_context.GetMany(x => x.Name.ToUpper().Contains(requestModel.ProductName.ToUpper()) && x.CategoryID == requestModel.CategoryId), requestModel.PageIndex);
+                    responseData = await _context.PagingAsync(_context.GetMany(x => x.Name.ToUpper().Contains(requestModel.ProductName.ToUpper()) && x.CategoryId == requestModel.CategoryId), requestModel.PageIndex);
                 }
 
 
-                List<ViewProductModel> products = new List<ViewProductModel>();
+                List<ProductDTO> products = new List<ProductDTO>();
                 foreach (var item in responseData.ModelDatas)
                 {
                     var categoryName = item.Category.Name;
                     item.Category = null;
                     var product = item;
-                    products.Add(new ViewProductModel
+                    products.Add(new ProductDTO
                     {
                         CategoryName = categoryName,
                         Product = product,
                     });
                 }
-                return new ViewListModel<ViewProductModel> { ModelDatas = products, MaxPage = responseData.MaxPage, PageIndex = responseData.PageIndex };
+                return new ViewListDTO<ProductDTO> { ModelDatas = products, MaxPage = responseData.MaxPage, PageIndex = responseData.PageIndex };
             }
             catch (IndexOutOfRangeException ex)
             {
@@ -149,7 +152,7 @@ namespace NashStoreAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Product>> GetProduct([FromRoute]int id)
         {
-            var product = await _context.GetByAsync(p => p.ID == id);
+            var product = await _context.GetByAsync(p => p.Id == id);
 
             if (product == null)
             {

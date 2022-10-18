@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BusinessObjects.Models;
 using DTO.Models;
+using DTO.Models.Category;
 
 namespace NashStoreAPI.Controllers
 {
@@ -23,13 +24,13 @@ namespace NashStoreAPI.Controllers
 
         // GET: api/Categories
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ViewCategoryModel>>> GetCategories()
+        public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetCategories()
         {
             var cateResponse = await _context.Categories.ToListAsync();
-            var categories = new List<ViewCategoryModel>();
+            var categories = new List<CategoryDTO>();
             foreach (var item in cateResponse)
             {
-                categories.Add(new ViewCategoryModel { CateId = item.ID, Name = item.Name });
+                categories.Add(new CategoryDTO { CateId = item.Id, Name = item.Name });
             }
             return categories;
         }
@@ -53,7 +54,7 @@ namespace NashStoreAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutCategory(int id, Category category)
         {
-            if (id != category.ID)
+            if (id != category.Id)
             {
                 return BadRequest();
             }
@@ -87,7 +88,7 @@ namespace NashStoreAPI.Controllers
             _context.Categories.Add(category);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetCategory", new { id = category.ID }, category);
+            return CreatedAtAction("GetCategory", new { id = category.Id }, category);
         }
 
         // DELETE: api/Categories/5
@@ -108,7 +109,7 @@ namespace NashStoreAPI.Controllers
 
         private bool CategoryExists(int id)
         {
-            return _context.Categories.Any(e => e.ID == id);
+            return _context.Categories.Any(e => e.Id == id);
         }
     }
 }
