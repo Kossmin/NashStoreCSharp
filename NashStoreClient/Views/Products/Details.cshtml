@@ -86,8 +86,8 @@
         </div>
         <form asp-action="Create" asp-controller="Ratings" method="post">
             <input id="star" hidden name="star"/>
-            <input name="productid" value=@Model.Product.Id />
-            <input name="customerid" value=@userId />
+            <input hidden name="productid" value=@Model.Product.Id />
+            <input hidden name="customerid" value=@userId />
             <div class="mb-3">
               <label for="exampleFormControlTextarea1" class="form-label">Example textarea</label>
               <textarea name="comment" class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
@@ -101,6 +101,22 @@
       </div>
     </div>
   </div>
+</div>
+<div class="row">
+    <form asp-action="Order" asp-controller="Orders" class="col-5">
+        <div class="row">
+            <div class="col-auto">
+                <label for="quantity" class="col-form-label">Quantity</label>
+            </div>
+            <div class="col-auto">
+                <input min="1" type="number" id="quantity" class="form-control" />
+            </div>
+            <input hidden name="productid" value=@Model.Product.Id />
+            <input hidden name="unitprice" value=@Model.Product.Price />
+            <input hidden name="customerid" value=@userId />
+            <button class="btn btn-dark">Order</button>
+        </div>
+    </form>
 </div>
 <div>
     <a asp-action="Index">Back to List</a>
