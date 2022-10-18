@@ -1,5 +1,5 @@
 ﻿
-@model DTO.Models.ViewListModel<ViewProductModel>
+@model DTO.Models.ViewListDTO<ProductDTO>
 
 @{
     ViewData["Title"] = "Index";
@@ -24,7 +24,7 @@
                   <div class="card-body">
                     <h5 class="card-title">@item.Product.Name</h5>
                     <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                    <a asp-action="Details" asp-route-id="@item.Product.ID"  class="btn btn-primary">Details</a>
+                    <a asp-action="Details" asp-route-id="@item.Product.Id"  class="btn btn-primary">Details</a>
                   </div>
                 </div>
         }
