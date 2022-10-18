@@ -13,6 +13,7 @@ namespace BusinessObjects.Models
         public int ProductId { get; set; }
         public RatingStar Star { get; set; }
         public string Comment { get; set; }
+        public DateTime PostedDate { get; set; } = DateTime.UtcNow;
 
         [ForeignKey("UserId")]
         public virtual User User { get; set; }
