@@ -8,9 +8,13 @@ using Microsoft.EntityFrameworkCore;
 using BusinessObjects.Models;
 using NashStoreClient.DataAccess;
 using DTO.Models;
+using Microsoft.AspNetCore.Authorization;
+using NashPhaseOne.DTO.Models.Product;
+using System.Security.Claims;
 
 namespace NashStoreClient.Controllers
 {
+    [AllowAnonymous]
     public class ProductsController : Controller
     {
         private IData _data;
@@ -30,18 +34,18 @@ namespace NashStoreClient.Controllers
 
         public async Task<IActionResult> Search(string searchName, string searchType,[FromQuery] int pageIndex = 1)
         {
-            var productsList = new ViewListModel<ViewProductModel>();
+            var productsList = new ViewListDTO<ProductDTO>();
             if (string.IsNullOrEmpty(searchName) && string.IsNullOrEmpty(searchType))
             {
                 return RedirectToAction("Index", new { pageIndex = 1 });
             }
             else if (string.IsNullOrEmpty(searchName))
             {
-                productsList = await _data.Searching(new DTO.Models.RequestSearchProductModel { CategoryId = int.Parse(searchType), ProductName = "", PageIndex = pageIndex});
+                productsList = await _data.Searching(new RequestSearchProductDTO { CategoryId = int.Parse(searchType), ProductName = "", PageIndex = pageIndex});
             }
             else
             {
-                productsList = await _data.Searching(new DTO.Models.RequestSearchProductModel { CategoryId = 0, ProductName = searchName, PageIndex = pageIndex});
+                productsList = await _data.Searching(new RequestSearchProductDTO { CategoryId = 0, ProductName = searchName, PageIndex = pageIndex});
             }
 
             var categoryList = await _data.GetCategories();
@@ -67,7 +71,18 @@ namespace NashStoreClient.Controllers
                 return NotFound();
             }
 
-            return View(new ViewProductModel { CategoryName = cateName, Product = product});
+            if (User.Identity.IsAuthenticated)
+            {
+                var userId = User.Claims.FirstOrDefault(u => u.Type == "userid").Value;
+                ViewData["userid"] = userId;
+            }
+            else
+            {
+                ViewData["userid"] = null;
+            }
+
+
+            return View(new ProductDTO { CategoryName = cateName, Product = product});
         }
     }
 }
