@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BusinessObjects\BusinessObjects.csproj" />
-    <ProjectReference Include="..\DTO\DTO.csproj" />
+    <ProjectReference Include="..\BusinessObjects\NashPhaseOne.BusinessObjects.csproj" />
+    <ProjectReference Include="..\DTO\NashPhaseOne.DTO.csproj" />
   </ItemGroup>
 
 </Project>
