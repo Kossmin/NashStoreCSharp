@@ -36,8 +36,8 @@ namespace BusinessObjects.Models
         {
             builder.Entity<Rating>().HasKey(r => new
             {
-                r.UserID,
-                r.ProductID
+                r.UserId,
+                r.ProductId
             });
             base.OnModelCreating(builder);
         }

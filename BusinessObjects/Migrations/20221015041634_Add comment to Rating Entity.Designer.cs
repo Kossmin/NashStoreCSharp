@@ -4,6 +4,7 @@ using BusinessObjects.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BusinessObjects.Migrations
 {
     [DbContext(typeof(NashStoreDbContext))]
-    partial class NashStoreDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221015041634_Add comment to Rating Entity")]
+    partial class AddcommenttoRatingEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -24,28 +26,28 @@ namespace BusinessObjects.Migrations
 
             modelBuilder.Entity("BusinessObjects.Models.Category", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"), 1L, 1);
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                    b.HasKey("ID");
 
                     b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.Order", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"), 1L, 1);
 
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
@@ -53,58 +55,55 @@ namespace BusinessObjects.Migrations
                     b.Property<DateTime?>("ShippedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
+                    b.Property<string>("UserID")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.HasKey("Id");
+                    b.HasKey("ID");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserID");
 
                     b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.OrderDetail", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"), 1L, 1);
 
-                    b.Property<int>("OrderId")
+                    b.Property<int>("OrderID")
                         .HasColumnType("int");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("ProductId")
+                    b.Property<int>("ProductID")
                         .HasColumnType("int");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.HasKey("ID");
 
-                    b.HasIndex("OrderId");
+                    b.HasIndex("OrderID");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("ProductID");
 
                     b.ToTable("OrderDetails");
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.Product", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"), 1L, 1);
 
-                    b.Property<int>("CategoryId")
+                    b.Property<int>("CategoryID")
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
@@ -134,19 +133,19 @@ namespace BusinessObjects.Migrations
                     b.Property<int>("Version")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.HasKey("ID");
 
-                    b.HasIndex("CategoryId");
+                    b.HasIndex("CategoryID");
 
                     b.ToTable("Products");
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.Rating", b =>
                 {
-                    b.Property<string>("UserId")
+                    b.Property<string>("UserID")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("ProductId")
+                    b.Property<int>("ProductID")
                         .HasColumnType("int");
 
                     b.Property<string>("Comment")
@@ -156,9 +155,9 @@ namespace BusinessObjects.Migrations
                     b.Property<int>("Star")
                         .HasColumnType("int");
 
-                    b.HasKey("UserId", "ProductId");
+                    b.HasKey("UserID", "ProductID");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("ProductID");
 
                     b.ToTable("Ratings");
                 });
@@ -365,7 +364,7 @@ namespace BusinessObjects.Migrations
                 {
                     b.HasOne("BusinessObjects.Models.User", "User")
                         .WithMany("Orders")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("UserID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -376,13 +375,13 @@ namespace BusinessObjects.Migrations
                 {
                     b.HasOne("BusinessObjects.Models.Order", "Order")
                         .WithMany("OrderDetails")
-                        .HasForeignKey("OrderId")
+                        .HasForeignKey("OrderID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("BusinessObjects.Models.Product", "Product")
                         .WithMany("OrderDetails")
-                        .HasForeignKey("ProductId")
+                        .HasForeignKey("ProductID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -395,7 +394,7 @@ namespace BusinessObjects.Migrations
                 {
                     b.HasOne("BusinessObjects.Models.Category", "Category")
                         .WithMany("Products")
-                        .HasForeignKey("CategoryId")
+                        .HasForeignKey("CategoryID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -406,13 +405,13 @@ namespace BusinessObjects.Migrations
                 {
                     b.HasOne("BusinessObjects.Models.Product", "Product")
                         .WithMany("Ratings")
-                        .HasForeignKey("ProductId")
+                        .HasForeignKey("ProductID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("BusinessObjects.Models.User", "User")
                         .WithMany("Ratings")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("UserID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

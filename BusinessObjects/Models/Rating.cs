@@ -9,20 +9,21 @@ namespace BusinessObjects.Models
 {
     public class Rating
     {
-        public string UserID { get; set; }
-        public int ProductID { get; set; }
+        public string UserId { get; set; }
+        public int ProductId { get; set; }
         public RatingStar Star { get; set; }
+        public string Comment { get; set; }
 
-        [ForeignKey("UserID")]
+        [ForeignKey("UserId")]
         public virtual User User { get; set; }
 
-        [ForeignKey("ProductID")]
+        [ForeignKey("ProductId")]
         public virtual Product Product { get; set; }
     }
 
     public enum RatingStar
     {
-        VeryUnsatisfied,
+        VeryUnsatisfied = 1,
         Unsatisfied,
         Neutral,
         Satisfied,

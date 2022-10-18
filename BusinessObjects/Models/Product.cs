@@ -12,8 +12,8 @@ namespace BusinessObjects.Models
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int ID { get; set; }
-        public int CategoryID { get; set; }
+        public int Id { get; set; }
+        public int CategoryId { get; set; }
         public string Name { get; set; }
         public decimal Price { get; set; }
         public string Description { get; set; }
@@ -23,7 +23,7 @@ namespace BusinessObjects.Models
         public bool IsDeleted { get; set; } = false;
         public int Version { get; set; } = 1;
 
-        [ForeignKey("CategoryID")]
+        [ForeignKey("CategoryId")]
         public virtual Category Category { get; set; }
 
         public virtual List<OrderDetail> OrderDetails { get; set; }

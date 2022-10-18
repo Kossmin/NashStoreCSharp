@@ -12,14 +12,25 @@ namespace BusinessObjects.Models
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int ID { get; set; }
-        public string UserID { get; set; }
+        public int Id { get; set; }
+        public string UserId { get; set; }
         public DateTime OrderDate { get; set; }
         public DateTime? ShippedDate { get; set; }
+        public OrderStatus Status { get; set; }
 
-        [ForeignKey("UserID")]
+        [ForeignKey("UserId")]
         public virtual User User { get; set; }
 
         public virtual List<OrderDetail> OrderDetails { get; set; }
+    }
+
+    public enum OrderStatus
+    {
+        Ordering,
+        Paid,
+        Delivering,
+        Delivered,
+        Pending,
+        Canceled
     }
 }
