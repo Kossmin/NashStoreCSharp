@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DTO.Models
+namespace DTO.Models.Category
 {
-    public class ViewCategoryModel
+    public class CategoryDTO
     {
         public int CateId { get; set; }
         public string Name { get; set; }

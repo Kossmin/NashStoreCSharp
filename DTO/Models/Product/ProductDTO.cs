@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DTO.Models
 {
-    public class ViewProductModel
+    public class ProductDTO
     {
         public Product Product { get; set; }
         public string CategoryName { get; set; }

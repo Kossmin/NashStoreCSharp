@@ -1,6 +1,6 @@
-﻿namespace DTO.Models
+﻿namespace NashPhaseOne.DTO.Models.Product
 {
-    public class RequestSearchProductModel
+    public class RequestSearchProductDTO
     {
         public int PageIndex { get; set; }
         public string ProductName { get; set; } = "";
