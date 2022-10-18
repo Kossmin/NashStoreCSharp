@@ -36,7 +36,7 @@ namespace DAO.Implements
             return _nashStoreDbContext.Set<T>().Where(expression);
         }
 
-        public async Task<ViewListModel<T>> PagingAsync(IQueryable<T> records, int pageIndex, int pageSize)
+        public async Task<ViewListDTO<T>> PagingAsync(IQueryable<T> records, int pageIndex, int pageSize)
         {
             var maxNumberOfPage = records.Count()/pageSize;
             if(records.Count() % pageSize > 0)
@@ -48,7 +48,7 @@ namespace DAO.Implements
                 throw new IndexOutOfRangeException();
             }
             var listResult = await records.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
-            return new ViewListModel<T> { ModelDatas = listResult, MaxPage = maxNumberOfPage, PageIndex = pageIndex};
+            return new ViewListDTO<T> { ModelDatas = listResult, MaxPage = maxNumberOfPage, PageIndex = pageIndex};
         }
 
         public async Task SaveAsync(T entity)

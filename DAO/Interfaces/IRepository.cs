@@ -13,7 +13,7 @@ namespace DAO.Interfaces
         IQueryable<T> GetAll();
         Task<T> GetByAsync(Expression<Func<T, bool>> expression);
         IQueryable<T> GetMany(Expression<Func<T, bool>> expression);
-        Task<ViewListModel<T>> PagingAsync(IQueryable<T> records, int pageIndex = 1, int pageSize = 1);
+        Task<ViewListDTO<T>> PagingAsync(IQueryable<T> records, int pageIndex = 1, int pageSize = 1);
         Task SaveAsync(T entity);
         Task UpdateAsync(T entity);
         Task DeleteAsync(T entity);
