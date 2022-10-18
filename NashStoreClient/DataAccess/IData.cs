@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Refit;
 using DTO.Models.Category;
 using NashPhaseOne.DTO.Models.Rating;
+using NashPhaseOne.DTO.Models.Order;
 
 namespace NashStoreClient.DataAccess
 {
@@ -28,5 +29,8 @@ namespace NashStoreClient.DataAccess
 
         [Post("/Users/login")]
         Task<Token> Login(LoginModel input);
+
+        [Post("/Orders")]
+        Task CreateOrder(OrderDTO order);
     }
 }
