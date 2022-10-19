@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NashPhaseOne.DTO.Models.Authen;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,7 +11,6 @@ namespace DTO.Models.Authen
     {
         public string TokenString { get; set; }
         public DateTime Expiration { get; set; }
-        public List<string> Roles { get; set; }
-        public string UserId { get; set; }
+        public UserDTO UserInfo { get; set; }
     }
 }
