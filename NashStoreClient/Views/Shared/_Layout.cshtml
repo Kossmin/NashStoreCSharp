@@ -20,13 +20,29 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Products" asp-action="Index">Home</a>
                         </li>
                     </ul>
+                    <ul class="navbar-nav flex-grow-0">
+                        @if (!User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Auth" asp-action="Login">Login</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">Hello, @User.Claims.FirstOrDefault(u=>u.Type == "username").Value</a>
+                                <ul class="dropdown-menu">
+                                  <li><a class="dropdown-item" asp-controller="Orders" asp-action="Cart">My Cart</a></li>
+                                  <li><a class="dropdown-item" asp-controller="Auth" asp-action="Logout">Logout</a></li>
+                                </ul>
+                            </li>
+                        }
+                    </ul>                    
                 </div>
+                
             </div>
         </nav>
     </header>
@@ -38,6 +54,15 @@
                 {
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                       <strong>@error</strong>
+                      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                var message = TempData["Message"] as string;
+                if(message != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                      <strong>@message</strong>
                       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 }
