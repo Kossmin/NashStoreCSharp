@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using NashPhaseOne.DTO.Models.Authen;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -50,8 +51,7 @@ namespace NashStoreAPI.Controllers
                 {
                     TokenString = new JwtSecurityTokenHandler().WriteToken(token),
                     Expiration = token.ValidTo,
-                    Roles = (List<string>)userRoles,
-                    UserId = user.Id
+                    UserInfo = new UserDTO { Id = user.Id , Roles = (List<string>)userRoles, UserName = user.NormalizedUserName},
                 });
             }
             return Unauthorized();
