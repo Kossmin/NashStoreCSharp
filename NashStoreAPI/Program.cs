@@ -1,3 +1,4 @@
+using AutoMapper;
 using BusinessObjects.Models;
 using DAO.Implements;
 using DAO.Interfaces;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using NashPhaseOne.API.AutoMapperProfile;
 using NashPhaseOne.DAO.Implements;
 using NashPhaseOne.DAO.Interfaces;
 using System.Text;
@@ -86,6 +88,14 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+//Add automapper profile
+var mapperConfig = new MapperConfiguration(mc => mc.AddProfile(new MapperProfile()));
+
+IMapper mapper = mapperConfig.CreateMapper();
+
+builder.Services.AddSingleton(mapper);
+
+//Add DI
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IRatingRepository, RatingRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
