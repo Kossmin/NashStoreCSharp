@@ -19,7 +19,7 @@ namespace NashPhaseOne.DAO.Implements
 
         public virtual Task<Order> GetByAsync(Expression<Func<Order, bool>> expression)
         {
-            return _nashStoreDbContext.Set<Order>().Include(o => o.OrderDetails).FirstOrDefaultAsync(expression);
+            return _nashStoreDbContext.Set<Order>().Include(o => o.OrderDetails).ThenInclude(o => o.Product).FirstOrDefaultAsync(expression);
         }
 
         public virtual IQueryable<Order> GetMany(Expression<Func<Order, bool>> expression)
