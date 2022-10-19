@@ -27,7 +27,7 @@ namespace NashStoreClient.Controllers
         public async Task<IActionResult> Login(LoginModel input, string returnUrl)
         {
             returnUrl = HttpContext.Request.Query["returnUrl"];
-            var token = await _data.Login(input);
+            var token = await _data.LoginAsync(input);
             if (token == null)
             {
                 ModelState.AddModelError("Error", "Your account is not valid. Try again!");
@@ -36,13 +36,14 @@ namespace NashStoreClient.Controllers
             else
             {
                 var claims = new List<Claim>();
-                foreach (var role in token.Roles)
+                foreach (var role in token.UserInfo.Roles)
                 {
                     claims.Add(new Claim(ClaimTypes.Role, role));
                 }
-                claims.Add(new Claim("token", token.TokenString));
+                claims.Add(new Claim("token", "Bearer " + token.TokenString));
                 claims.Add(new Claim("expiration", token.Expiration.ToString()));
-                claims.Add(new Claim("userid", token.UserId.ToString()));
+                claims.Add(new Claim("userid", token.UserInfo.Id.ToString()));
+                claims.Add(new Claim("username", token.UserInfo.UserName));
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var claimsPrinciple = new ClaimsPrincipal(claimsIdentity);
                 await HttpContext.SignInAsync(claimsPrinciple);
@@ -56,13 +57,15 @@ namespace NashStoreClient.Controllers
                 //    return RedirectToAction("Index", "Products", new {pageIndex = 1});
                 //}
 
-                return RedirectToAction("Temp");
+                TempData["Message"] = "Login success";
+                return RedirectToAction("Index", "Products");
             }
         }
         [Authorize]
-        public IActionResult Temp()
+        public async Task<ActionResult> Logout()
         {
-            return View();
+            await HttpContext.SignOutAsync();
+            return RedirectToAction("Index", "Products");
         }
     }
 }
