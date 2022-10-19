@@ -109,11 +109,11 @@
                 <label for="quantity" class="col-form-label">Quantity</label>
             </div>
             <div class="col-auto">
-                <input min="1" type="number" id="quantity" class="form-control" />
+                <input min="1" value="1" name="quantity" type="number" id="quantity" class="form-control" />
             </div>
             <input hidden name="productid" value=@Model.Product.Id />
             <input hidden name="unitprice" value=@Model.Product.Price />
-            <input hidden name="customerid" value=@userId />
+            <input hidden name="userid" value=@userId />
             <button class="btn btn-dark">Order</button>
         </div>
     </form>
