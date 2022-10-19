@@ -61,16 +61,21 @@ namespace NashStoreClient.Controllers
                 var token = User.Claims.FirstOrDefault(u => u.Type == "token").Value;
                 try
                 {
-                    var response = await _data.CreateRating(rating, token);
+                    var response = await _data.CreateRatingAsync(rating, token);
                 }
                 catch (Refit.ApiException e)
                 { 
                     var errorList = await e.GetContentAsAsync<Dictionary<string, string>>();
-                    TempData["Error"] = errorList.First().Value;
-                    return RedirectToAction("Details", "Products", new { id = rating.ProductId });
+                    if(errorList != null)
+                    {
+                        TempData["Error"] = errorList.First().Value;
+                        return RedirectToAction("Details", "Products", new { id = rating.ProductId });
+                    }
+                    else
+                    {
+                        TempData["Message"] = "Comment success";
+                    }
                 }
-
-                return RedirectToAction(nameof(Index));
             }
             return RedirectToAction("Index", "Products", new { pageIndex = 1 });
         }
