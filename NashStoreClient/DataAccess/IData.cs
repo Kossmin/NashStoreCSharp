@@ -7,30 +7,37 @@ using Refit;
 using DTO.Models.Category;
 using NashPhaseOne.DTO.Models.Rating;
 using NashPhaseOne.DTO.Models.Order;
+using NashPhaseOne.DTO.Models;
 
 namespace NashStoreClient.DataAccess
 {
     public interface IData
     {
         [Get("/Products/available")]
-        Task<ViewListDTO<ProductDTO>> GetProducts([FromQuery]int pageIndex);
+        Task<ViewListDTO<ProductDTO>> GetProductsAsync([FromQuery]int pageIndex);
 
         [Get("/Products/{id}")]
-        Task<Product> GetProductById([FromRoute] int id);
+        Task<Product> GetProductByIdAsync([FromRoute] int id);
 
         [Post("/Products/search")]
-        Task<ViewListDTO<ProductDTO>> Searching(RequestSearchProductDTO model);
+        Task<ViewListDTO<ProductDTO>> SearchingAsync(RequestSearchProductDTO model);
 
         [Get("/Categories")]
-        Task<List<CategoryDTO>> GetCategories();
+        Task<List<CategoryDTO>> GetCategoriesAsync();
 
         [Post("/Ratings")]
-        Task<ActionResult> CreateRating(RatingDTO model, [Header("Authorization")] string bearerToken);
+        Task<ActionResult> CreateRatingAsync(RatingDTO model, [Header("Authorization")] string bearerToken);
 
         [Post("/Users/login")]
-        Task<Token> Login(LoginModel input);
+        Task<Token> LoginAsync(LoginModel input);
 
-        [Post("/Orders")]
-        Task CreateOrder(OrderDTO order);
+        [Post("/Orders/create")]
+        Task CreateOrderAsync(OrderDTO order, [Header("Authorization")] string bearerToken);
+
+        [Post("/Orders/cart")]
+        Task<CartDTO> GetCartAsync(UserIdString userId);
+
+        [Post("/Orders/checkout")]
+        Task<ActionResult> CheckoutAsync(UserIdString userId);
     }
 }
