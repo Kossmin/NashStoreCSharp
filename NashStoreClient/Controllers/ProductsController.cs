@@ -26,8 +26,8 @@ namespace NashStoreClient.Controllers
         // GET: Products
         public async Task<IActionResult> Index([FromQuery]int pageIndex = 1)
         {
-            var productsList = await _data.GetProducts(pageIndex);
-            var categoryList = await _data.GetCategories();
+            var productsList = await _data.GetProductsAsync(pageIndex);
+            var categoryList = await _data.GetCategoriesAsync();
             ViewData["CategoryId"] = new SelectList(categoryList, "CateId", "Name");
             return View(productsList);
         }
@@ -41,14 +41,14 @@ namespace NashStoreClient.Controllers
             }
             else if (string.IsNullOrEmpty(searchName))
             {
-                productsList = await _data.Searching(new RequestSearchProductDTO { CategoryId = int.Parse(searchType), ProductName = "", PageIndex = pageIndex});
+                productsList = await _data.SearchingAsync(new RequestSearchProductDTO { CategoryId = int.Parse(searchType), ProductName = "", PageIndex = pageIndex});
             }
             else
             {
-                productsList = await _data.Searching(new RequestSearchProductDTO { CategoryId = 0, ProductName = searchName, PageIndex = pageIndex});
+                productsList = await _data.SearchingAsync(new RequestSearchProductDTO { CategoryId = 0, ProductName = searchName, PageIndex = pageIndex});
             }
 
-            var categoryList = await _data.GetCategories();
+            var categoryList = await _data.GetCategoriesAsync();
             ViewData["CategoryId"] = new SelectList(categoryList, "CateId", "Name");
             ViewData["SearchName"] = searchName;
             ViewData["SearchType"] = searchType;
@@ -63,7 +63,7 @@ namespace NashStoreClient.Controllers
                 return NotFound();
             }
 
-            var product = await _data.GetProductById(id.Value);
+            var product = await _data.GetProductByIdAsync(id.Value);
             var cateName = product.Category.Name;
             product.Category = null;
             if (product == null)
