@@ -28,9 +28,30 @@
             <tr>
                 <td>@item.Product.Name</td>
                 <td>@item.Price</td>
-                <td>@item.Quantity</td>
+                <td id="@item.Id-form" hidden>
+                    <form asp-action="Edit" asp-controller="Orders">
+                        <div class="input-group mb-3">
+                          <input name="orderdetailid" hidden value="@item.Id" />
+                          <input name="quantity" type="number" class="form-control" value=@item.Quantity min="1" aria-describedby="button-addon2">
+                          <button class="btn btn-outline-secondary" type="submit" id="button-addon2">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-lg" viewBox="0 0 16 16">
+                                  <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"/>
+                              </svg>
+                          </button>
+                          <button id="@item.Id" onclick="hideForm(this)" class="btn btn-outline-secondary" type="button">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                                  <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+                              </svg>
+                          </button>
+                        </div>
+                    </form>
+                </td>
+                <td id="@item.Id-quantity">@item.Quantity</td>
                 <td>@(item.Quantity * item.Price)</td>
-                <td></td>
+                <td>
+                    <a id=@item.Id onclick="showForm(this)">Edit</a> | 
+                    <a onclick="confirm('Are you sure?')" asp-action="DeleteOrderDetail" asp-route-id=@item.Id asp-controller="Orders">Delete</a>
+                </td>
             </tr>
         }
     </tbody>
@@ -46,4 +67,24 @@
 <form asp-action="Checkout" asp-controller="Orders">
     <button>Order!</button>
 </form>
+}
+
+
+@section scripts{
+    <script>
+        function showForm(e){
+            var form = document.getElementById(e.id +"-form");
+            var quantity = document.getElementById(e.id + "-quantity");
+            form.hidden = false;
+            quantity.hidden = true;
+            console.log(quantity);
+        }
+
+        function hideForm(e){
+            var form = document.getElementById(e.id +"-form");
+            var quantity = document.getElementById(e.id + "-quantity");
+            form.hidden = true;
+            quantity.hidden = false;
+        }
+    </script>
 }
