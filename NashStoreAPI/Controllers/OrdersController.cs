@@ -80,7 +80,7 @@ namespace NashPhaseOne.API.Controllers
             order.Status = OrderStatus.Paid;
             await _orderRepository.UpdateAsync(order);
             await _unitOfWork.CommitAsync();
-            return new NoContentResult();
+            return Ok();
         }
 
         [HttpPost("create")]
