@@ -5,33 +5,40 @@
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
-<h1>Index</h1>
-
 <div class="container-fluid">
-    <div>
+    <div class="mb-5">
         <form asp-action="Search" asp-controller="Products">
-            <select name="searchType" class ="form-control" asp-items="ViewBag.CategoryId"></select>
-            <input class="form-control type="text" name="searchName"/>
-            <button class="form-control">Search</button>
+            <div class="input-group">
+                <select name="searchType" class ="form-control" asp-items="ViewBag.CategoryId">
+                    <option value="">Categories</option>
+                </select>
+                <input placeholder="Search products by name" class="form-control" type="text" name="searchName"/>
+                <button class="form-control btn-outline-primary">Search</button>
+            </div>
         </form>
     </div>
     <div class="row">
-        @foreach (var item in Model.ModelDatas)
-        {
-            <div class="card col-md-3 me-2">
-                <img src=@item.Product.ImgUrl class="card-img-top" alt="...">
-                  <div class="card-body">
-                    <h5 class="card-title">@item.Product.Name</h5>
-                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                    <a asp-action="Details" asp-route-id="@item.Product.Id"  class="btn btn-primary">Details</a>
-                  </div>
+        <div class="container">
+            <div class="row d-flex justify-content-center">
+                @*<div class="col-3 d-inline-block">Sidebar</div>*@
+                <div class="col-12 d-inline-flex flex-wrap justify-content-between">
+                    @foreach (var item in Model.ModelDatas)
+                    {
+                    <div class="col">
+                        <div class="card mb-3 me-1">
+                            <img src=@item.Product.ImgUrls.First() class="card-img-top" alt="...">
+                            <div class="card-body">
+                            <h5 class="card-title">@item.Product.Name</h5>
+                            <p class="card-text" style="height: 52px; overflow: hidden">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                            <a asp-action="Details" asp-route-id="@item.Product.Id"  class="btn btn-primary">Details</a>
+                          </div>
+                        </div>
+                    </div>
+                    }
                 </div>
-        }
-    </div>
-</div>
-
-<nav aria-label="...">
+            </div>
+            <div class="row">
+                <nav class="d-flex justify-content-end" aria-label="...">
   <ul class="pagination">
         @if(Model.MaxPage > 1 && Model.PageIndex != 1)
         {
@@ -52,15 +59,15 @@
                 {
                     if(i == Model.PageIndex)
                     {
-                        <li class="page-item active" aria-current="page">
-                            @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
-                        </li>
+                            <li class="page-item active" aria-current="page">
+                                @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
+                            </li>
                     }
                     else
                     {
-                        <li class="page-item" aria-current="page">
-                            @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
-                        </li>
+                            <li class="page-item" aria-current="page">
+                                @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
+                            </li>
                     }
                 }
             }
@@ -72,15 +79,15 @@
                     {
                         if(i == Model.PageIndex)
                         {
-                            <li class="page-item active" aria-current="page">
-                                @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
-                            </li>
+                                <li class="page-item active" aria-current="page">
+                                    @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
+                                </li>
                         }
                         else
                         {
-                            <li class="page-item" aria-current="page">
-                                @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
-                            </li>
+                                <li class="page-item" aria-current="page">
+                                    @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
+                                </li>
                         }
                     }
                 }else if(Model.PageIndex == Model.MaxPage)
@@ -89,15 +96,15 @@
                     {
                         if(i == Model.PageIndex)
                         {
-                            <li class="page-item active" aria-current="page">
-                                @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
-                            </li>
+                                <li class="page-item active" aria-current="page">
+                                    @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
+                                </li>
                         }
                         else
                         {
-                            <li class="page-item" aria-current="page">
-                                @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
-                            </li>
+                                <li class="page-item" aria-current="page">
+                                    @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
+                                </li>
                         }
                     }
                 }
@@ -107,15 +114,15 @@
                     {
                         if(i == Model.PageIndex)
                         {
-                            <li class="page-item active" aria-current="page">
-                                @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
-                            </li>
+                                <li class="page-item active" aria-current="page">
+                                    @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
+                                </li>
                         }
                         else
                         {
-                            <li class="page-item" aria-current="page">
-                                @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
-                            </li>
+                                <li class="page-item" aria-current="page">
+                                    @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
+                                </li>
                         }
                     }
                 }
@@ -135,3 +142,9 @@
         }
   </ul>
 </nav>
+            </div>
+        </div>
+        
+    </div>
+</div>
+

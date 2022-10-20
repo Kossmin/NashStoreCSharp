@@ -7,57 +7,34 @@
 }
 
 <style>
-    .selected{
-        background: black;
-    }
     .selected svg{
         color: yellow;
     }
 </style>
 
-<h1>Details</h1>
-
-<div>
-    <h4>Product</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Product.Name)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Product.Name)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Product.Price)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Product.Price)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Product.Description)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Product.Description)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Product.Quantity)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Product.Quantity)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Product.ImportedDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Product.ImportedDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CategoryName)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CategoryName)
-        </dd>
-    </dl>
+<div class="row">
+    <div id="carouselExampleSlidesOnly" class="carousel slide col-3" data-bs-ride="carousel">
+        <div class="carousel-inner">
+        <div class="carousel-item active">
+          <img src="@Model.Product.ImgUrls.First()" class="d-block w-100" alt="...">
+        </div>
+        @foreach (var item in Model.Product.ImgUrls.Skip(1))
+            {
+                <div class="carousel-item">
+                  <img src="@item" class="d-block w-100" alt="...">
+                </div>
+            }
+        </div>
+    </div>
+</div>
+<div class="row">
+    <h2>@Model.Product.Name</h2>
+    <p><span style="color: red">@Model.Product.Price</span>$</p>
+    <p>There are @Model.Product.Quantity products in our storage.</p>
+    <p>
+        <h3>Product Information</h3>
+        <p>@Model.Product.Description</p>
+    </p>
 </div>
 
 
@@ -89,10 +66,10 @@
             <input hidden name="productid" value=@Model.Product.Id />
             <input hidden name="customerid" value=@userId />
             <div class="mb-3">
-              <label for="exampleFormControlTextarea1" class="form-label">Example textarea</label>
+              <label for="exampleFormControlTextarea1" class="form-label">Your comment: </label>
               <textarea name="comment" class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
             </div>
-            <button type="submit" class="btn btn-primary">Save changes</button>
+            <button type="submit" class="btn btn-primary">Comment</button>
         </form>
            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>

@@ -12,40 +12,49 @@
 
 <div class="container-fluid">
     <div>
+
         <form asp-action="Search" asp-controller="Products">
-            <select name="searchType" class ="form-control" asp-items="ViewBag.CategoryId"></select>
-            <input class="form-control type="text" name="searchName"/>
-            <button class="form-control">Search</button>
-            <a asp-action="Index"  class="btn btn-primary">Show all</a>
+            <div class="input-group">
+                <select name="searchType" class ="form-control" asp-items="ViewBag.CategoryId">
+                    <option value="">Categories</option>
+                </select>
+                <input placeholder="Search products by name" class="form-control" type="text" name="searchName"/>
+                <button class="form-control btn-outline-primary">Search</button>
+                <a asp-action="Index" class="btn btn-primary">Show all</a>
+            </div>
         </form>
     </div>
     <div class="row">
-        @foreach (var item in Model.ModelDatas)
-        {
-            <div class="card col-md-3 me-2">
-                <img src=@item.Product.ImgUrl class="card-img-top" alt="...">
-                  <div class="card-body">
-                    <h5 class="card-title">@item.Product.Name</h5>
-                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                    <a asp-action="Details" asp-route-id="@item.Product.Id"  class="btn btn-primary">Details</a>
-                  </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-3 d-inline-block">Sidebar</div>
+                <div class="col-9 d-inline-flex flex-wrap justify-content-between">
+                    @foreach (var item in Model.ModelDatas)
+                    {
+                    <div class="card col-md-4 mb-3">
+                        <img src=@item.Product.ImgUrls.First() class="card-img-top" alt="...">
+                        <div class="card-body">
+                        <h5 class="card-title">@item.Product.Name</h5>
+                        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                        <a asp-action="Details" asp-route-id="@item.Product.Id"  class="btn btn-primary">Details</a>
+                      </div>
+                    </div>
+                    }
                 </div>
-        }
-    </div>
-</div>
-
-<nav aria-label="...">
+            </div>
+            <div class="row">
+                <nav class="d-flex justify-content-end" aria-label="...">
   <ul class="pagination">
         @if(Model.MaxPage > 1 && Model.PageIndex != 1)
         {
             <li class="page-item">
-                @Html.ActionLink("Previous", "Search", "Products",new {pageIndex = Model.PageIndex - 1, searchType = Type, searchName = Name}, new {@class = "page-link"})
+                @Html.ActionLink("Previous", "Index", "Products",new {pageIndex = Model.PageIndex - 1}, new {@class = "page-link"})
             </li>
         }
         else
         {
             <li class="page-item disabled">
-                @Html.ActionLink("Previous", "Search", "Products",new {pageIndex = 1, searchType = Type, searchName = Name}, new {@class = "page-link"})
+                @Html.ActionLink("Previous", "Index", "Products",new {pageIndex = 1}, new {@class = "page-link"})
             </li>
         }
         @{
@@ -56,13 +65,13 @@
                     if(i == Model.PageIndex)
                     {
                         <li class="page-item active" aria-current="page">
-                            @Html.ActionLink(i.ToString(), "Search", "Products",new {pageIndex = i, searchType = Type, searchName = Name}, new {@class = "page-link"})
+                            @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
                         </li>
                     }
                     else
                     {
                         <li class="page-item" aria-current="page">
-                            @Html.ActionLink(i.ToString(), "Search", "Products",new {pageIndex = i, searchType = Type, searchName = Name}, new {@class = "page-link"})
+                            @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
                         </li>
                     }
                 }
@@ -76,13 +85,13 @@
                         if(i == Model.PageIndex)
                         {
                             <li class="page-item active" aria-current="page">
-                                @Html.ActionLink(i.ToString(), "Search", "Products",new {pageIndex = i, searchType = Type, searchName = Name}, new {@class = "page-link"})
+                                @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
                             </li>
                         }
                         else
                         {
                             <li class="page-item" aria-current="page">
-                                @Html.ActionLink(i.ToString(), "Search", "Products",new {pageIndex = i, searchType = Type, searchName = Name}, new {@class = "page-link"})
+                                @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
                             </li>
                         }
                     }
@@ -93,13 +102,13 @@
                         if(i == Model.PageIndex)
                         {
                             <li class="page-item active" aria-current="page">
-                                @Html.ActionLink(i.ToString(), "Search", "Products",new {pageIndex = i, searchType = Type, searchName = Name}, new {@class = "page-link"})
+                                @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
                             </li>
                         }
                         else
                         {
                             <li class="page-item" aria-current="page">
-                                @Html.ActionLink(i.ToString(), "Search", "Products",new {pageIndex = i, searchType = Type, searchName = Name}, new {@class = "page-link"})
+                                @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
                             </li>
                         }
                     }
@@ -111,13 +120,13 @@
                         if(i == Model.PageIndex)
                         {
                             <li class="page-item active" aria-current="page">
-                                @Html.ActionLink(i.ToString(), "Search", "Products",new {pageIndex = i, searchType = Type, searchName = Name}, new {@class = "page-link"})
+                                @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
                             </li>
                         }
                         else
                         {
                             <li class="page-item" aria-current="page">
-                                @Html.ActionLink(i.ToString(), "Search", "Products",new {pageIndex = i, searchType = Type, searchName = Name}, new {@class = "page-link"})
+                                @Html.ActionLink(i.ToString(), "Index", "Products",new {pageIndex = i}, new {@class = "page-link"})
                             </li>
                         }
                     }
@@ -127,14 +136,20 @@
         @if(Model.PageIndex != Model.MaxPage)
         {
             <li class="page-item">
-                @Html.ActionLink("Next", "Search", "Products",new {pageIndex = Model.PageIndex + 1, searchType = Type, searchName = Name}, new {@class = "page-link"})
+                @Html.ActionLink("Next", "Index", "Products",new {pageIndex = Model.PageIndex + 1}, new {@class = "page-link"})
             </li>
         }
         else
         {
             <li class="page-item disabled">
-                @Html.ActionLink("Next", "Search", "Products",new {pageIndex = 1, searchType = Type, searchName = Name}, new {@class = "page-link"})
+                @Html.ActionLink("Next", "Index", "Products",new {pageIndex = 1}, new {@class = "page-link"})
             </li>
         }
   </ul>
 </nav>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
