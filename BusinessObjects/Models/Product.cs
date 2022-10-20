@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -19,7 +20,7 @@ namespace BusinessObjects.Models
         public string Description { get; set; }
         public int Quantity { get; set; }
         public DateTime ImportedDate { get; set; }
-        public string ImgUrl { get; set; }
+        public List<string> ImgUrls { get; set; }
         public bool IsDeleted { get; set; } = false;
         public int Version { get; set; } = 1;
 
