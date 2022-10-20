@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,6 +40,9 @@ namespace BusinessObjects.Models
                 r.UserId,
                 r.ProductId
             });
+
+            builder.Entity<Product>().Property(p => p.ImgUrls)
+                .HasConversion(s => JsonConvert.SerializeObject(s), s => JsonConvert.DeserializeObject<List<string>>(s));
             base.OnModelCreating(builder);
         }
     }
