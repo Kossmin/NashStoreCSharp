@@ -48,15 +48,6 @@ namespace NashStoreClient.Controllers
                 var claimsPrinciple = new ClaimsPrincipal(claimsIdentity);
                 await HttpContext.SignInAsync(claimsPrinciple);
 
-                //HttpContext.Response.Cookies.Append("token", token.TokenString, new CookieOptions { Expires = token.Expiration });
-                //if(returnUrl != null)
-                //{
-                //    return Redirect(returnUrl);
-                //}
-                //else { 
-                //    return RedirectToAction("Index", "Products", new {pageIndex = 1});
-                //}
-
                 TempData["Message"] = "Login success";
                 return RedirectToAction("Index", "Products");
             }
@@ -66,6 +57,11 @@ namespace NashStoreClient.Controllers
         {
             await HttpContext.SignOutAsync();
             return RedirectToAction("Index", "Products");
+        }
+
+        public async Task<ActionResult> Register()
+        {
+            return View();
         }
     }
 }
