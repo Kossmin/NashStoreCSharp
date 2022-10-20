@@ -39,5 +39,11 @@ namespace NashStoreClient.DataAccess
 
         [Post("/Orders/checkout")]
         Task<ActionResult> CheckoutAsync(UserIdString userId);
+
+        [Patch("/OrderDetails/update")]
+        Task UpdateOrderDetailAsync(OrderDetailDTO orderDetail);
+
+        [Delete("/OrderDetails")]
+        Task DeleteOrderDetailAsync(int id);
     }
 }
