@@ -49,16 +49,34 @@ namespace NashPhaseOne.Client.Controllers
             catch (Refit.ApiException e)
             {
                 var errorList = await e.GetContentAsAsync<Dictionary<string, string>>();
-                if(errorList != null)
-                {
-                    TempData["Error"] = errorList?.First().Value;
-                }
-                else
-                {
-                    TempData["Message"] = "Checkout successly";
-                }
+                
+                TempData["Error"] = errorList?.First().Value;
+                
             }
             return RedirectToAction("Index", "Products");
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> Edit(string OrderDetailId, int Quantity)
+        {
+            try
+            {
+                var newOrderDetail = new OrderDetailDTO { Id = int.Parse(OrderDetailId), Quantity = Quantity, Price = 0, Product = new DTO.Models.Product.ProductDetailDTO() };
+                await _data.UpdateOrderDetailAsync(newOrderDetail);
+            }catch(Refit.ApiException e)
+            {
+                var errorList = await e.GetContentAsAsync<Dictionary<string, string>>();
+                TempData["Error"] = errorList?.First().Value; ;
+            }
+            TempData["Message"] = "Edit success";
+            return RedirectToAction("Cart");
+        }
+
+        public async Task<ActionResult> DeleteOrderDetail(int id)
+        {
+            await _data.DeleteOrderDetailAsync(id);
+            TempData["Message"] = "Remove success";
+            return RedirectToAction("Cart");
         }
     }
 }
