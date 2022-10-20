@@ -18,10 +18,12 @@ namespace NashStoreAPI.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly IProductRepository _context;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public ProductsController(IProductRepository context)
+        public ProductsController(IProductRepository context, IUnitOfWork unitOfWork)
         {
             _context = context;
+            _unitOfWork = unitOfWork;
         }
 
         // GET: api/Products
@@ -118,7 +120,7 @@ namespace NashStoreAPI.Controllers
                 {
                     responseData = await _context.PagingAsync(_context.GetMany(x => x.CategoryId == requestModel.CategoryId), requestModel.PageIndex); 
                 }
-                else if (requestModel.CategoryId == null)
+                else if (requestModel.CategoryId == 0)
                 {
                     responseData = await _context.PagingAsync(_context.GetMany(x => x.Name.ToUpper().Contains(requestModel.ProductName.ToUpper())), requestModel.PageIndex);
                 }
@@ -160,6 +162,22 @@ namespace NashStoreAPI.Controllers
             }
 
             return product;
+        }
+
+        [HttpGet("Temp")]
+        public async Task<ActionResult> Add()
+        {
+            var productsData = await _context.PagingAsync(_context.GetMany(p => p.IsDeleted == false));
+            List<ProductDTO> products = new List<ProductDTO>();
+            foreach (var item in productsData.ModelDatas)
+            {
+                item.ImgUrls = new List<string>();
+                item.ImgUrls.Add("https://cdn2.cellphones.com.vn/358x/media/catalog/product/i/p/iphone-11-xanh-la-1_1.jpg");
+                item.ImgUrls.Add("https://cdn2.cellphones.com.vn/358x/media/catalog/product/4/8/4824327_cover_iphone-11-mint211_1.jpg");
+                await _context.UpdateAsync(item);
+            }
+            await _unitOfWork.CommitAsync();
+            return Ok();
         }
 
         //// PUT: api/Products/5
