@@ -1,4 +1,5 @@
-﻿using BusinessObjects.Models;
+﻿using AutoMapper;
+using BusinessObjects.Models;
 using DAO.Interfaces;
 using DTO.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -17,9 +18,11 @@ namespace NashStoreAPI.Controllers
         private readonly IRatingRepository _ratingRepository;
         private readonly IOrderRepository _orderRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public RatingsController(IRatingRepository ratingRepository, IOrderRepository orderRepository, IUnitOfWork unitOfWork)
+        public RatingsController(IMapper mapper, IRatingRepository ratingRepository, IOrderRepository orderRepository, IUnitOfWork unitOfWork)
         {
+            _mapper = mapper;
             _unitOfWork = unitOfWork;
             _ratingRepository = ratingRepository;
             _orderRepository = orderRepository;
@@ -29,7 +32,7 @@ namespace NashStoreAPI.Controllers
         [Authorize]
         public async Task<IActionResult> Create(RatingDTO model)
         {
-            var userOrder = await _orderRepository.GetMany(o => o.UserId == model.CustomerId && o.Status != OrderStatus.Ordering).ToListAsync();
+            var userOrder = await _orderRepository.GetMany(o => o.UserId == model.UserId && o.Status != OrderStatus.Ordering).ToListAsync();
             var userOrderDetails = new List<OrderDetail>();
             foreach (var item in userOrder)
             {
@@ -38,7 +41,7 @@ namespace NashStoreAPI.Controllers
             var ifUserByThisProduct =userOrderDetails.FirstOrDefault(od => od.ProductId == model.ProductId) != null;
             if (ifUserByThisProduct) 
             { 
-                await _ratingRepository.SaveAsync(new BusinessObjects.Models.Rating { ProductId = model.ProductId, UserId = model.CustomerId, Comment = model.Comment, Star = model.Star });
+                await _ratingRepository.SaveAsync(new BusinessObjects.Models.Rating { ProductId = model.ProductId, UserId = model.UserId, Comment = model.Comment, Star = model.Star });
             }
             else
             {
@@ -52,6 +55,20 @@ namespace NashStoreAPI.Controllers
                 return BadRequest(new { message = "You have reviewed this product already" });
             }
             return Ok();
+        }
+
+        [HttpGet]
+        public async Task<List<RatingDTO>> Get(int id)
+        {
+            var result = await _ratingRepository.GetMany(r => r.ProductId == id).ToListAsync();
+            if(result.Count == 0)
+            {
+                return new List<RatingDTO>();
+            }
+            else
+            {
+                return _mapper.Map<List<RatingDTO>>(result);
+            }
         }
     }
 }
