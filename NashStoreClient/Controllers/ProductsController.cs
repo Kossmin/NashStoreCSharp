@@ -11,6 +11,7 @@ using DTO.Models;
 using Microsoft.AspNetCore.Authorization;
 using NashPhaseOne.DTO.Models.Product;
 using System.Security.Claims;
+using Refit;
 
 namespace NashStoreClient.Controllers
 {
@@ -35,17 +36,26 @@ namespace NashStoreClient.Controllers
         public async Task<IActionResult> Search(string searchName, string searchType,[FromQuery] int pageIndex = 1)
         {
             var productsList = new ViewListDTO<ProductDTO>();
-            if (string.IsNullOrEmpty(searchName) && string.IsNullOrEmpty(searchType))
+            try
             {
-                return RedirectToAction("Index", new { pageIndex = 1 });
+                if (string.IsNullOrEmpty(searchName) && string.IsNullOrEmpty(searchType))
+                {
+                    return RedirectToAction("Index", new { pageIndex = 1 });
+                }
+                else if (string.IsNullOrEmpty(searchName))
+                {
+                    productsList = await _data.SearchingAsync(new RequestSearchProductDTO { CategoryId = int.Parse(searchType), ProductName = "", PageIndex = pageIndex });
+                }
+                else
+                {
+                    productsList = await _data.SearchingAsync(new RequestSearchProductDTO { CategoryId = 0, ProductName = searchName, PageIndex = pageIndex });
+                }
             }
-            else if (string.IsNullOrEmpty(searchName))
+            catch (ApiException e)
             {
-                productsList = await _data.SearchingAsync(new RequestSearchProductDTO { CategoryId = int.Parse(searchType), ProductName = "", PageIndex = pageIndex});
-            }
-            else
-            {
-                productsList = await _data.SearchingAsync(new RequestSearchProductDTO { CategoryId = 0, ProductName = searchName, PageIndex = pageIndex});
+                var errorList = await e.GetContentAsAsync<Dictionary<string, string>>();
+                TempData["Error"] = errorList.First().Value;
+                return RedirectToAction("Index", "Products", new {pageIndex = 1});
             }
 
             var categoryList = await _data.GetCategoriesAsync();
@@ -64,8 +74,7 @@ namespace NashStoreClient.Controllers
             }
 
             var product = await _data.GetProductByIdAsync(id.Value);
-            var cateName = product.Category.Name;
-            product.Category = null;
+            var cateName = product.CategoryName;
             if (product == null)
             {
                 return NotFound();
@@ -81,8 +90,9 @@ namespace NashStoreClient.Controllers
                 ViewData["userid"] = null;
             }
 
-
-            return View(new ProductDTO { CategoryName = cateName, Product = product});
+            var ratingList = await _data.GetRatingAsync(id.Value);
+            ViewData["ratingList"] = ratingList;
+            return View(product);
         }
     }
 }
