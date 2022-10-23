@@ -54,7 +54,7 @@ namespace NashStoreClient.Controllers
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("CustomerId,ProductId,Star,Comment")] RatingDTO rating)
+        public async Task<IActionResult> Create([Bind("UserId,ProductId,Star,Comment")] RatingDTO rating)
         {
             if (ModelState.IsValid)
             {
@@ -66,17 +66,11 @@ namespace NashStoreClient.Controllers
                 catch (Refit.ApiException e)
                 { 
                     var errorList = await e.GetContentAsAsync<Dictionary<string, string>>();
-                    if(errorList != null)
-                    {
-                        TempData["Error"] = errorList.First().Value;
-                        return RedirectToAction("Details", "Products", new { id = rating.ProductId });
-                    }
-                    else
-                    {
-                        TempData["Message"] = "Comment success";
-                    }
+                    TempData["Error"] = errorList.First().Value;
+                    return RedirectToAction("Details", "Products", new { id = rating.ProductId });
                 }
             }
+            TempData["Message"] = "Comment success";
             return RedirectToAction("Index", "Products", new { pageIndex = 1 });
         }
 
