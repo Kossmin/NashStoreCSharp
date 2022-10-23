@@ -2,6 +2,7 @@
 using BusinessObjects.Models;
 using NashPhaseOne.DTO.Models.Order;
 using NashPhaseOne.DTO.Models.Product;
+using NashPhaseOne.DTO.Models.Rating;
 
 namespace NashPhaseOne.API.AutoMapperProfile
 {
@@ -10,8 +11,12 @@ namespace NashPhaseOne.API.AutoMapperProfile
         public MapperProfile()
         {
             CreateMap<OrderDetail, OrderDetailDTO>();
-            CreateMap<Order, CartDTO>();
+            CreateMap<Order, ListOrderDetailsDTO>();
             CreateMap<Product, ProductDetailDTO>();
+            CreateMap<Rating, RatingDTO>();
+            CreateMap<Product, ProductDTO>()
+                .ForMember(dest => dest.CategoryName, opt=> opt.MapFrom(src=>src.Category.Name))
+                .ForMember(dest => dest.ImgUrls, opt => opt.MapFrom(src => src.ImgUrls));
         }
     }
 }
