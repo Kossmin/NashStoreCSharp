@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NashPhaseOne.API", "NashSto
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NashPhaseOne.DTO", "DTO\NashPhaseOne.DTO.csproj", "{EF055464-1F6F-43EF-B882-48F8C1962D92}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NashPhaseOne.Test", "NashPhaseOne.Test\NashPhaseOne.Test.csproj", "{FEC084F3-DA1D-435E-A35B-B78AA3ACF18D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{EF055464-1F6F-43EF-B882-48F8C1962D92}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EF055464-1F6F-43EF-B882-48F8C1962D92}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EF055464-1F6F-43EF-B882-48F8C1962D92}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FEC084F3-DA1D-435E-A35B-B78AA3ACF18D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FEC084F3-DA1D-435E-A35B-B78AA3ACF18D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FEC084F3-DA1D-435E-A35B-B78AA3ACF18D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FEC084F3-DA1D-435E-A35B-B78AA3ACF18D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
