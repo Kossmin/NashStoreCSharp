@@ -10,6 +10,7 @@ using DAO.Interfaces;
 using DTO.Models;
 using Microsoft.AspNetCore.Authorization;
 using NashPhaseOne.DTO.Models.Product;
+using AutoMapper;
 
 namespace NashStoreAPI.Controllers
 {
@@ -19,11 +20,13 @@ namespace NashStoreAPI.Controllers
     {
         private readonly IProductRepository _context;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public ProductsController(IProductRepository context, IUnitOfWork unitOfWork)
+        public ProductsController(IMapper mapper, IProductRepository context, IUnitOfWork unitOfWork)
         {
             _context = context;
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         // GET: api/Products
@@ -34,19 +37,9 @@ namespace NashStoreAPI.Controllers
             {
                 var productsData = await _context.PagingAsync(_context.GetAll(),pageIndex);
 
-                List<ProductDTO> products = new List<ProductDTO>();
-                foreach (var item in productsData.ModelDatas)
-                {
-                    var categoryName = item.Category.Name;
-                    item.Category = null;
-                    var product = item;
-                    products.Add(new ProductDTO
-                    {
-                        CategoryName = categoryName,
-                        Product = product,
-                    });
-                }
-                return new ViewListDTO<ProductDTO> { ModelDatas = products, MaxPage = 0, PageIndex = pageIndex};
+                var products = _mapper.Map<List<ProductDTO>>(productsData.ModelDatas);
+
+                return Ok(new ViewListDTO<ProductDTO> { ModelDatas = products, MaxPage = productsData.MaxPage, PageIndex = pageIndex});
             }
             catch (IndexOutOfRangeException ex)
             {
@@ -60,19 +53,10 @@ namespace NashStoreAPI.Controllers
             try
             {
                 var productsData = await _context.PagingAsync(_context.GetMany(p => p.IsDeleted == false), pageIndex);
-                List<ProductDTO> products = new List<ProductDTO>();
-                foreach (var item in productsData.ModelDatas)
-                {
-                    var categoryName = item.Category.Name;
-                    item.Category = null;
-                    var product = item;
-                    products.Add(new ProductDTO
-                    {
-                        CategoryName = categoryName,
-                        Product = product,
-                    });
-                }
-                return new ViewListDTO<ProductDTO> { ModelDatas = products, PageIndex = productsData.PageIndex, MaxPage = productsData.MaxPage};
+
+                var products = _mapper.Map<List<ProductDTO>>(productsData.ModelDatas);
+
+                return Ok(new ViewListDTO<ProductDTO> { ModelDatas = products, MaxPage = productsData.MaxPage, PageIndex = pageIndex });
             }
             catch (IndexOutOfRangeException ex)
             {
@@ -87,19 +71,9 @@ namespace NashStoreAPI.Controllers
             try
             {
                 var productsData = await _context.PagingAsync(_context.GetMany(p => p.IsDeleted == true), pageIndex);
-                List<ProductDTO> products = new List<ProductDTO>();
-                foreach (var item in productsData.ModelDatas)
-                {
-                    var categoryName = item.Category.Name;
-                    item.Category = null;
-                    var product = item;
-                    products.Add(new ProductDTO
-                    {
-                        CategoryName = categoryName,
-                        Product = product,
-                    });
-                }
-                return new ViewListDTO<ProductDTO> { ModelDatas = products, MaxPage = productsData.MaxPage, PageIndex = productsData.PageIndex };
+                var products = _mapper.Map<List<ProductDTO>>(productsData.ModelDatas);
+
+                return Ok(new ViewListDTO<ProductDTO> { ModelDatas = products, MaxPage = productsData.MaxPage, PageIndex = pageIndex });
             }
             catch (IndexOutOfRangeException ex)
             {
@@ -108,7 +82,8 @@ namespace NashStoreAPI.Controllers
         }
 
         [HttpPost("search")]
-        public async Task<ActionResult<ViewListDTO<ProductDTO>>> GetProductByName([FromBody]RequestSearchProductDTO requestModel){
+        public async Task<ActionResult<ViewListDTO<ProductDTO>>> GetProductByName([FromBody]RequestSearchProductDTO requestModel)
+        {
             try
             {
                 var responseData = new ViewListDTO<Product>();
@@ -122,27 +97,23 @@ namespace NashStoreAPI.Controllers
                 }
                 else if (requestModel.CategoryId == 0)
                 {
-                    responseData = await _context.PagingAsync(_context.GetMany(x => x.Name.ToUpper().Contains(requestModel.ProductName.ToUpper())), requestModel.PageIndex);
+                    var temp = _context.GetMany(x => x.Name.ToUpper().Contains(requestModel.ProductName.ToUpper()));
+                    var tmp = temp.ToList();
+                    responseData = await _context.PagingAsync(temp, requestModel.PageIndex);
                 }
                 else
                 {
                     responseData = await _context.PagingAsync(_context.GetMany(x => x.Name.ToUpper().Contains(requestModel.ProductName.ToUpper()) && x.CategoryId == requestModel.CategoryId), requestModel.PageIndex);
                 }
 
-
-                List<ProductDTO> products = new List<ProductDTO>();
-                foreach (var item in responseData.ModelDatas)
+                if(responseData == null)
                 {
-                    var categoryName = item.Category.Name;
-                    item.Category = null;
-                    var product = item;
-                    products.Add(new ProductDTO
-                    {
-                        CategoryName = categoryName,
-                        Product = product,
-                    });
+                    return BadRequest(new { message = "Can't find" });
                 }
-                return new ViewListDTO<ProductDTO> { ModelDatas = products, MaxPage = responseData.MaxPage, PageIndex = responseData.PageIndex };
+
+                var products = _mapper.Map<List<ProductDTO>>(responseData.ModelDatas);
+
+                return Ok(new ViewListDTO<ProductDTO> { ModelDatas = products, MaxPage = responseData.MaxPage, PageIndex = requestModel.PageIndex });
             }
             catch (IndexOutOfRangeException ex)
             {
@@ -152,7 +123,7 @@ namespace NashStoreAPI.Controllers
 
         // GET: api/Products/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Product>> GetProduct([FromRoute]int id)
+        public async Task<ActionResult<ProductDTO>> GetProduct([FromRoute]int id)
         {
             var product = await _context.GetByAsync(p => p.Id == id);
 
@@ -160,25 +131,26 @@ namespace NashStoreAPI.Controllers
             {
                 return NotFound();
             }
+            var convertData = _mapper.Map<ProductDTO>(product);
 
-            return product;
+            return convertData;
         }
 
-        [HttpGet("Temp")]
-        public async Task<ActionResult> Add()
-        {
-            var productsData = await _context.PagingAsync(_context.GetMany(p => p.IsDeleted == false));
-            List<ProductDTO> products = new List<ProductDTO>();
-            foreach (var item in productsData.ModelDatas)
-            {
-                item.ImgUrls = new List<string>();
-                item.ImgUrls.Add("https://cdn2.cellphones.com.vn/358x/media/catalog/product/i/p/iphone-11-xanh-la-1_1.jpg");
-                item.ImgUrls.Add("https://cdn2.cellphones.com.vn/358x/media/catalog/product/4/8/4824327_cover_iphone-11-mint211_1.jpg");
-                await _context.UpdateAsync(item);
-            }
-            await _unitOfWork.CommitAsync();
-            return Ok();
-        }
+        //[HttpGet("Temp")]
+        //public async Task<ActionResult> AddImage()
+        //{
+        //    var productsData = await _context.PagingAsync(_context.GetMany(p => p.IsDeleted == false));
+        //    List<TempProductDTO> products = new List<TempProductDTO>();
+        //    foreach (var item in productsData.ModelDatas)
+        //    {
+        //        item.ImgUrls = new List<string>();
+        //        item.ImgUrls.Add("https://cdn2.cellphones.com.vn/358x/media/catalog/product/i/p/iphone-11-xanh-la-1_1.jpg");
+        //        item.ImgUrls.Add("https://cdn2.cellphones.com.vn/358x/media/catalog/product/4/8/4824327_cover_iphone-11-mint211_1.jpg");
+        //        await _context.UpdateAsync(item);
+        //    }
+        //    await _unitOfWork.CommitAsync();
+        //    return Ok();
+        //}
 
         //// PUT: api/Products/5
         //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
