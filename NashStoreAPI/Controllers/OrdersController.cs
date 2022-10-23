@@ -5,6 +5,7 @@ using DTO.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using NashPhaseOne.DAO.Interfaces;
 using NashPhaseOne.DTO.Models;
 using NashPhaseOne.DTO.Models.Order;
@@ -38,25 +39,105 @@ namespace NashPhaseOne.API.Controllers
         }
 
         [HttpPost("cart")]
-        [AllowAnonymous]
-        public async Task<CartDTO> GetCart([FromBody]UserIdString userId)
+        [Authorize]
+        public async Task<ListOrderDetailsDTO> GetCart([FromBody]IdString userId)
         {
             var order = await _orderRepository.GetByAsync(o => o.Status == OrderStatus.Ordering && o.UserId == userId.Id);
 
             if(order != null)
             {
-                var mappedOrder = _mapper.Map<Order, CartDTO>(order);
+                var mappedOrder = _mapper.Map<Order, ListOrderDetailsDTO>(order);
                 return mappedOrder;
             }
             else
             {
-                return new CartDTO();
+                return new ListOrderDetailsDTO();
+            }
+        }
+
+        [HttpPut("cancel")]
+        [Authorize]
+        public async Task<ActionResult> CancelOrders([FromBody] IdString id)
+        {
+            var order = await _orderRepository.GetByAsync(o => o.Id == int.Parse(id.Id));
+
+            if (order == null)
+            {
+                return BadRequest(new { message = "Can't find this order" });
+            }
+            else
+            {
+                order.Status = OrderStatus.Canceled;
+                await _orderRepository.UpdateAsync(order);
+
+                var orderDetails = order.OrderDetails;
+
+                foreach (var orderDetail in orderDetails)
+                {
+                    var prod = await _productRepository.GetByAsync(x => x.Id == orderDetail.ProductId);
+                    prod.Quantity += orderDetail.Quantity;
+
+                    await _productRepository.UpdateAsync(prod);
+                }
+                await _unitOfWork.CommitAsync();
+                return Ok();
+            }
+        }
+
+        [HttpPost("canceled")]
+        [Authorize]
+        public async Task<List<ListOrderDetailsDTO>> GetCanceledOrders([FromBody] IdString userId)
+        {
+            var order = _orderRepository.GetMany(o => o.Status == OrderStatus.Canceled && o.UserId == userId.Id).Include(x => x.OrderDetails).ThenInclude(x => x.Product).ToList();
+
+            if (order != null)
+            {
+                var mappedOrder = _mapper.Map<List<Order>, List<ListOrderDetailsDTO>>(order);
+                return mappedOrder;
+            }
+            else
+            {
+                return new List<ListOrderDetailsDTO>();
+            }
+        }
+
+        [HttpPost("paid")]
+        [Authorize]
+        public async Task<List<ListOrderDetailsDTO>> GetPaidOrders([FromBody] IdString userId)
+        {
+            var order = _orderRepository.GetMany(o => o.Status == OrderStatus.Paid && o.UserId == userId.Id).Include(x=>x.OrderDetails).ThenInclude(x=>x.Product).ToList();
+
+            if (order != null)
+            {
+                var mappedOrder = _mapper.Map<List<Order>, List<ListOrderDetailsDTO>>(order);
+                return mappedOrder;
+            }
+            else
+            {
+                return new List<ListOrderDetailsDTO>();
+            }
+        }
+
+        [HttpPost("delivering")]
+        [Authorize]
+        public async Task<List<ListOrderDetailsDTO>> GetDeliveringOrders([FromBody] IdString userId)
+        {
+            var order = _orderRepository.GetMany(o => o.Status == OrderStatus.Delivering && o.UserId == userId.Id).ToList();
+
+            if (order != null)
+            {
+                var mappedOrder = _mapper.Map<List<Order>, List<ListOrderDetailsDTO>>(order);
+                return mappedOrder;
+            }
+            else
+            {
+                return new List<ListOrderDetailsDTO>();
             }
         }
 
         [HttpPost("checkout")]
         //[AllowAnonymous]
-        public async Task<ActionResult> Checkout([FromBody]UserIdString userId)
+        public async Task<ActionResult> Checkout([FromBody]IdString userId)
         {
             var order = await _orderRepository.GetByAsync(o => o.Status == OrderStatus.Ordering && o.UserId == userId.Id);
 
@@ -78,6 +159,7 @@ namespace NashPhaseOne.API.Controllers
             }
 
             order.Status = OrderStatus.Paid;
+            order.OrderDate = DateTime.UtcNow;
             await _orderRepository.UpdateAsync(order);
             await _unitOfWork.CommitAsync();
             return Ok();
