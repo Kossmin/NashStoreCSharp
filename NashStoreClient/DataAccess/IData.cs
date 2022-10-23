@@ -17,13 +17,16 @@ namespace NashStoreClient.DataAccess
         Task<ViewListDTO<ProductDTO>> GetProductsAsync([FromQuery]int pageIndex);
 
         [Get("/Products/{id}")]
-        Task<Product> GetProductByIdAsync([FromRoute] int id);
+        Task<ProductDTO> GetProductByIdAsync([FromRoute] int id);
 
         [Post("/Products/search")]
         Task<ViewListDTO<ProductDTO>> SearchingAsync(RequestSearchProductDTO model);
 
         [Get("/Categories")]
         Task<List<CategoryDTO>> GetCategoriesAsync();
+
+        [Get("/Ratings")]
+        Task<List<RatingDTO>> GetRatingAsync(int id);
 
         [Post("/Ratings")]
         Task<ActionResult> CreateRatingAsync(RatingDTO model, [Header("Authorization")] string bearerToken);
@@ -34,16 +37,31 @@ namespace NashStoreClient.DataAccess
         [Post("/Orders/create")]
         Task CreateOrderAsync(OrderDTO order, [Header("Authorization")] string bearerToken);
 
+        [Put("/Orders/cancel")]
+        Task CancelOrderAsync(IdString idString, [Header("Authorization")] string bearerToken);
+
         [Post("/Orders/cart")]
-        Task<CartDTO> GetCartAsync(UserIdString userId);
+        Task<ListOrderDetailsDTO> GetCartAsync(IdString userId, [Header("Authorization")] string bearerToken);
+
+        [Post("/Orders/canceled")]
+        Task<List<ListOrderDetailsDTO>> GetCanceledOrdersAsync(IdString userIdString, [Header("Authorization")] string bearerToken);
+
+        [Post("/Orders/delivering")]
+        Task<List<ListOrderDetailsDTO>> GetDeliveringOrdersAsync(IdString userIdString, [Header("Authorization")] string bearerToken);
+
+        [Post("/Orders/paid")]
+        Task<List<ListOrderDetailsDTO>> GetPaidOrdersAsync(IdString userIdString, [Header("Authorization")] string bearerToken);
 
         [Post("/Orders/checkout")]
-        Task<ActionResult> CheckoutAsync(UserIdString userId);
+        Task<ActionResult> CheckoutAsync(IdString userId);
 
         [Patch("/OrderDetails/update")]
         Task UpdateOrderDetailAsync(OrderDetailDTO orderDetail);
 
         [Delete("/OrderDetails")]
         Task DeleteOrderDetailAsync(int id);
+
+        [Post("/Users/register")]
+        Task<Response> RegisterAsync(RegisterModel registerModel);
     }
 }
