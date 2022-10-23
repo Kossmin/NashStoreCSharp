@@ -17,8 +17,9 @@ namespace NashStoreClient.Controllers
             _data = data;
         }
 
-        public IActionResult Login()
+        public IActionResult Login(string returnUrl)
         {
+            ViewBag.ReturnUrl = returnUrl;
             return View();
         }
 
@@ -27,6 +28,10 @@ namespace NashStoreClient.Controllers
         public async Task<IActionResult> Login(LoginModel input, string returnUrl)
         {
             returnUrl = HttpContext.Request.Query["returnUrl"];
+            if (!ModelState.IsValid)
+            {
+                return View();
+            }
             var token = await _data.LoginAsync(input);
             if (token == null)
             {
@@ -62,6 +67,25 @@ namespace NashStoreClient.Controllers
         public async Task<ActionResult> Register()
         {
             return View();
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> Register([Bind("Username, Email, Password")]RegisterModel registerModel, string confirmPassword)
+        {
+            if(registerModel.Password != confirmPassword)
+            {
+                ModelState.AddModelError("confirmPassword", "Confirm password field must match with password field");
+            }
+            if (ModelState.IsValid)
+            {
+                await _data.RegisterAsync(registerModel);
+            }
+            else
+            {
+                return View();
+            }
+            TempData["Message"] = "Register success";
+            return RedirectToAction("Login", "Auth");
         }
     }
 }
