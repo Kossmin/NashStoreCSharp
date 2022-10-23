@@ -1,4 +1,4 @@
-﻿@model NashPhaseOne.DTO.Models.Order.CartDTO
+﻿@model NashPhaseOne.DTO.Models.Order.ListOrderDetailsDTO
 @*
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
@@ -6,6 +6,8 @@
     var isNull = ViewData["cartDto"] == null;
     var totalAmount = 0m;
 }
+@Html.Partial("_OrderNav")
+
 @if (isNull)
 {
     <h1>No Order</h1>
@@ -13,6 +15,7 @@
 <table class="table">
     <thead>
         <tr>
+            <th>Image</th>
             <th>Name</th>
             <th>Unit Price</th>
             <th>Quantity</th>
@@ -26,13 +29,16 @@
                    totalAmount += (item.Quantity * item.Price);
              
             <tr>
+                <td>
+                    <img width="20%" class="img-thumbnail" src="@item.Product.ImgUrls.First()"/>
+                </td>
                 <td>@item.Product.Name</td>
                 <td>@item.Price</td>
                 <td id="@item.Id-form" hidden>
                     <form asp-action="Edit" asp-controller="Orders">
                         <div class="input-group mb-3">
                           <input name="orderdetailid" hidden value="@item.Id" />
-                          <input name="quantity" type="number" class="form-control" value=@item.Quantity min="1" aria-describedby="button-addon2">
+                          <input required name="quantity" type="number" class="form-control" value=@item.Quantity min="1" aria-describedby="button-addon2">
                           <button class="btn btn-outline-secondary" type="submit" id="button-addon2">
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-lg" viewBox="0 0 16 16">
                                   <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"/>

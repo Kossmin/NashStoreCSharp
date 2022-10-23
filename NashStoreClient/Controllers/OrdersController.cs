@@ -18,7 +18,8 @@ namespace NashPhaseOne.Client.Controllers
         public async Task<ActionResult> Cart()
         {
             var userId = User.Claims.FirstOrDefault(u => u.Type == "userid").Value;
-            var cartDto = await _data.GetCartAsync(new UserIdString { Id = userId});
+            var token = User.Claims.FirstOrDefault(u => u.Type == "token").Value;
+            var cartDto = await _data.GetCartAsync(new IdString { Id = userId}, token);
             if(cartDto.OrderDetails.Count() == 0)
             {
                 ViewData["cartDto"] = null;
@@ -28,6 +29,70 @@ namespace NashPhaseOne.Client.Controllers
                 ViewData["cartDto"] = cartDto;
             }
             return View(cartDto);
+        }
+
+        public async Task<ActionResult> CancelOrder(int id)
+        {
+            var token = User.Claims.FirstOrDefault(u => u.Type == "token").Value;
+
+            try
+            {
+                await _data.CancelOrderAsync(new IdString { Id = id.ToString() }, token);
+            }
+            catch (Refit.ApiException)
+            {
+
+            }
+
+            return RedirectToAction("PaidOrders");
+        }
+
+        public async Task<ActionResult> CanceledOrders()
+        {
+            var userId = User.Claims.FirstOrDefault(u => u.Type == "userid").Value;
+            var token = User.Claims.FirstOrDefault(u => u.Type == "token").Value;
+            var orders = await _data.GetCanceledOrdersAsync(new IdString { Id = userId}, token);
+            if (orders.Count() == 0)
+            {
+                ViewData["cartDto"] = null;
+            }
+            else
+            {
+                ViewData["cartDto"] = orders;
+            }
+            return View(orders);
+        }
+
+        public async Task<ActionResult> PaidOrders()
+        {
+            var token = User.Claims.FirstOrDefault(u => u.Type == "token").Value;
+            var userId = User.Claims.FirstOrDefault(u => u.Type == "userid").Value;
+            var orders = await _data.GetPaidOrdersAsync(new IdString { Id = userId }, token);
+            if (orders.Count() == 0)
+            {
+                ViewData["cartDto"] = null;
+            }
+            else
+            {
+                ViewData["cartDto"] = orders;
+            }
+            return View(orders);
+        }
+
+        public async Task<ActionResult> DeliveringOrders()
+        {
+            var userId = User.Claims.FirstOrDefault(u => u.Type == "userid").Value;
+            var token = User.Claims.FirstOrDefault(u => u.Type == "token").Value;
+            var orders = await _data.GetDeliveringOrdersAsync(new IdString { Id = userId }, token);
+            if (orders.Count() == 0)
+            {
+                ViewData["cartDto"] = null;
+            }
+            else
+            {
+                ViewData["cartDto"] = orders;
+            }
+            return View(orders);
         }
 
         [Authorize]
@@ -44,7 +109,7 @@ namespace NashPhaseOne.Client.Controllers
             var userId = User.Claims.FirstOrDefault(u => u.Type == "userid").Value;
             try
             {
-                await _data.CheckoutAsync(new UserIdString { Id = userId });
+                await _data.CheckoutAsync(new IdString { Id = userId });
             }
             catch (Refit.ApiException e)
             {
