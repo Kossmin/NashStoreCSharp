@@ -9,7 +9,7 @@ namespace NashPhaseOne.DTO.Models.Rating
 {
     public class RatingDTO
     {
-        public string CustomerId { get; set; }
+        public string UserId { get; set; }
         public int ProductId { get; set; }
         public RatingStar Star { get; set; }
         public string Comment { get; set; }
