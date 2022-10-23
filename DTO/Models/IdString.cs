@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NashPhaseOne.DTO.Models
 {
-    public class UserIdString
+    public class IdString
     {
         public string Id { get; set; }
     }
