@@ -38,6 +38,10 @@ namespace DAO.Implements
 
         public async Task<ViewListDTO<T>> PagingAsync(IQueryable<T> records, int pageIndex, int pageSize)
         {
+            if(records.Count() == 0)
+            {
+                return null;
+            }
             var maxNumberOfPage = records.Count()/pageSize;
             if(records.Count() % pageSize > 0)
             {
@@ -47,7 +51,7 @@ namespace DAO.Implements
             {
                 throw new IndexOutOfRangeException();
             }
-            var listResult = await records.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
+            var listResult = await records?.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
             return new ViewListDTO<T> { ModelDatas = listResult, MaxPage = maxNumberOfPage, PageIndex = pageIndex};
         }
 
