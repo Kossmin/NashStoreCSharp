@@ -8,7 +8,7 @@ namespace DTO.Models.Category
 {
     public class CategoryDTO
     {
-        public int CateId { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; }
     }
 }
