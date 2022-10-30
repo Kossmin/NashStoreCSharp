@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DAO.Interfaces
 {
-    internal interface ICategoryRepository : IRepository<Category>
+    public interface ICategoryRepository : IRepository<Category>
     {
     }
 }
