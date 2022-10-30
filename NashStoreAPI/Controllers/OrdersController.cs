@@ -33,9 +33,26 @@ namespace NashPhaseOne.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ViewListDTO<Order>> GetAll()
+        public async Task<ViewListDTO<Order>> GetAll([FromQuery]int pageIndex = 1)
         {
-            return await _orderRepository.PagingAsync(_orderRepository.GetAll());
+            return await _orderRepository.PagingAsync(_orderRepository.GetAll().Where(x=>x.Status != OrderStatus.Ordering), pageIndex);
+        }
+
+        [HttpGet("getorderstatistic")]
+        public async Task<List<OrderStatisticDTO>> GetOrderStatistics()
+        {
+            var orders = await _orderRepository.GetAll().Where(x=>x.Status != OrderStatus.Ordering).ToListAsync();
+            var paidOrders = orders.Where(x => x.Status == OrderStatus.Paid);
+            var delivering = orders.Where(x => x.Status == OrderStatus.Delivering);
+            var delivered = orders.Where(x => x.Status == OrderStatus.Delivered);
+            var pending = orders.Where(x => x.Status == OrderStatus.Pending);
+            var canceled = orders.Where(x => x.Status == OrderStatus.Canceled);
+            return new List<OrderStatisticDTO> {
+                new OrderStatisticDTO { Type = OrderStatus.Paid.ToString(), Amount = paidOrders.Count() },
+                new OrderStatisticDTO { Type = OrderStatus.Delivering.ToString(), Amount = delivering.Count() },
+                new OrderStatisticDTO { Type = OrderStatus.Delivered.ToString(), Amount = delivered.Count() },
+                new OrderStatisticDTO { Type = OrderStatus.Pending.ToString(), Amount = pending.Count() },
+                new OrderStatisticDTO { Type = OrderStatus.Canceled.ToString(), Amount = canceled.Count()},};
         }
 
         [HttpPost("cart")]
