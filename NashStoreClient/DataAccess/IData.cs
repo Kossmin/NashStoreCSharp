@@ -23,7 +23,7 @@ namespace NashStoreClient.DataAccess
         Task<ViewListDTO<ProductDTO>> SearchingAsync(RequestSearchProductDTO model);
 
         [Get("/Categories")]
-        Task<List<CategoryDTO>> GetCategoriesAsync();
+        Task<IEnumerable<CategoryDTO>> GetCategoriesAsync();
 
         [Get("/Ratings")]
         Task<List<RatingDTO>> GetRatingAsync(int id);
