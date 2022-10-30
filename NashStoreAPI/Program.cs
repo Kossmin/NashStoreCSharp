@@ -1,4 +1,5 @@
 using AutoMapper;
+using Azure.Storage.Blobs;
 using BusinessObjects.Models;
 using DAO.Implements;
 using DAO.Interfaces;
@@ -8,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NashPhaseOne.API.AutoMapperProfile;
+using NashPhaseOne.API.BlobHelper;
+using NashPhaseOne.API.BlobService;
 using NashPhaseOne.DAO.Implements;
 using NashPhaseOne.DAO.Interfaces;
 using System.Text;
@@ -95,12 +98,18 @@ IMapper mapper = mapperConfig.CreateMapper();
 
 builder.Services.AddSingleton(mapper);
 
+//Add blob context
+builder.Services.AddSingleton(x => new BlobServiceClient(configuration.GetValue<string>("AzureBlobStorageConnectionString")));
+
+builder.Services.AddSingleton<IBlobService, BlobService>();
+
 //Add DI
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IRatingRepository, RatingRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
 var app = builder.Build();
 
