@@ -29,7 +29,7 @@ namespace NashStoreClient.Controllers
         {
             var productsList = await _data.GetProductsAsync(pageIndex);
             var categoryList = await _data.GetCategoriesAsync();
-            ViewData["CategoryId"] = new SelectList(categoryList, "CateId", "Name");
+            ViewData["CategoryId"] = new SelectList(categoryList, "Id", "Name");
             return View(productsList);
         }
 
@@ -59,7 +59,7 @@ namespace NashStoreClient.Controllers
             }
 
             var categoryList = await _data.GetCategoriesAsync();
-            ViewData["CategoryId"] = new SelectList(categoryList, "CateId", "Name");
+            ViewData["CategoryId"] = new SelectList(categoryList, "Id", "Name");
             ViewData["SearchName"] = searchName;
             ViewData["SearchType"] = searchType;
             return View(productsList);
