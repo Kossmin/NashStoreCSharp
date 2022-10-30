@@ -11,6 +11,7 @@ using DTO.Models;
 using Microsoft.AspNetCore.Authorization;
 using NashPhaseOne.DTO.Models.Product;
 using AutoMapper;
+using NashPhaseOne.API.BlobHelper;
 
 namespace NashStoreAPI.Controllers
 {
@@ -18,24 +19,28 @@ namespace NashStoreAPI.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly IProductRepository _context;
+        private readonly IProductRepository _productRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IBlobService _blobService;
+        private readonly string blobURL = "https://nashstoreimage.blob.core.windows.net/nashstoreimage/";
 
-        public ProductsController(IMapper mapper, IProductRepository context, IUnitOfWork unitOfWork)
+        public ProductsController(IMapper mapper, IProductRepository productRepository, IUnitOfWork unitOfWork, IBlobService blobService)
         {
-            _context = context;
+            _blobService = blobService;
+            _productRepository = productRepository;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         // GET: api/Products
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ViewListDTO<ProductDTO>>> GetAllProducts([FromQuery] int pageIndex)
         {
             try
             {
-                var productsData = await _context.PagingAsync(_context.GetAll(),pageIndex);
+                var productsData = await _productRepository.PagingAsync(_productRepository.GetAll().OrderBy(x => x.IsDeleted ? 1 : 0), pageIndex);
 
                 var products = _mapper.Map<List<ProductDTO>>(productsData.ModelDatas);
 
@@ -52,7 +57,7 @@ namespace NashStoreAPI.Controllers
         {
             try
             {
-                var productsData = await _context.PagingAsync(_context.GetMany(p => p.IsDeleted == false), pageIndex);
+                var productsData = await _productRepository.PagingAsync(_productRepository.GetMany(p => p.IsDeleted == false), pageIndex);
 
                 var products = _mapper.Map<List<ProductDTO>>(productsData.ModelDatas);
 
@@ -64,13 +69,13 @@ namespace NashStoreAPI.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         [HttpGet("unavailable")]
         public async Task<ActionResult<ViewListDTO<ProductDTO>>> GetUnAvailableProducts([FromQuery] int pageIndex)
         {
             try
             {
-                var productsData = await _context.PagingAsync(_context.GetMany(p => p.IsDeleted == true), pageIndex);
+                var productsData = await _productRepository.PagingAsync(_productRepository.GetMany(p => p.IsDeleted == true), pageIndex);
                 var products = _mapper.Map<List<ProductDTO>>(productsData.ModelDatas);
 
                 return Ok(new ViewListDTO<ProductDTO> { ModelDatas = products, MaxPage = productsData.MaxPage, PageIndex = pageIndex });
@@ -93,17 +98,17 @@ namespace NashStoreAPI.Controllers
                 }
                 else if (string.IsNullOrEmpty(requestModel.ProductName))
                 {
-                    responseData = await _context.PagingAsync(_context.GetMany(x => x.CategoryId == requestModel.CategoryId), requestModel.PageIndex); 
+                    responseData = await _productRepository.PagingAsync(_productRepository.GetMany(x => x.CategoryId == requestModel.CategoryId), requestModel.PageIndex); 
                 }
                 else if (requestModel.CategoryId == 0)
                 {
-                    var temp = _context.GetMany(x => x.Name.ToUpper().Contains(requestModel.ProductName.ToUpper()));
+                    var temp = _productRepository.GetMany(x => x.Name.ToUpper().Contains(requestModel.ProductName.ToUpper()));
                     var tmp = temp.ToList();
-                    responseData = await _context.PagingAsync(temp, requestModel.PageIndex);
+                    responseData = await _productRepository.PagingAsync(temp, requestModel.PageIndex);
                 }
                 else
                 {
-                    responseData = await _context.PagingAsync(_context.GetMany(x => x.Name.ToUpper().Contains(requestModel.ProductName.ToUpper()) && x.CategoryId == requestModel.CategoryId), requestModel.PageIndex);
+                    responseData = await _productRepository.PagingAsync(_productRepository.GetMany(x => x.Name.ToUpper().Contains(requestModel.ProductName.ToUpper()) && x.CategoryId == requestModel.CategoryId), requestModel.PageIndex);
                 }
 
                 if(responseData == null)
@@ -125,7 +130,7 @@ namespace NashStoreAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ProductDTO>> GetProduct([FromRoute]int id)
         {
-            var product = await _context.GetByAsync(p => p.Id == id);
+            var product = await _productRepository.GetByAsync(p => p.Id == id);
 
             if (product == null)
             {
@@ -134,6 +139,23 @@ namespace NashStoreAPI.Controllers
             var convertData = _mapper.Map<ProductDTO>(product);
 
             return convertData;
+        }
+
+        [HttpPost("add")]
+        public async Task<ActionResult> Add([FromForm]AdminProductDTO model)
+        {
+            var newProduct = _mapper.Map<Product>(model);
+            newProduct.ImgUrls = new List<string>();
+            await _productRepository.SaveAsync(newProduct);
+
+            foreach (var item in model.Imgs)
+            {
+                await _blobService.UploadFileBlobAsync(item);
+                newProduct.ImgUrls.Add(blobURL + item.FileName);
+            }
+
+            await _unitOfWork.CommitAsync();
+            return Ok();
         }
 
         //[HttpGet("Temp")]
