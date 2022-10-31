@@ -46,20 +46,24 @@ namespace NashStoreClient.Controllers
                 {
                     productsList = await _data.SearchingAsync(new RequestSearchProductDTO { CategoryId = int.Parse(searchType), ProductName = "", PageIndex = pageIndex });
                 }
-                else
+                else if (string.IsNullOrEmpty(searchType))
                 {
                     productsList = await _data.SearchingAsync(new RequestSearchProductDTO { CategoryId = 0, ProductName = searchName, PageIndex = pageIndex });
+                }
+                else
+                {
+                    productsList = await _data.SearchingAsync(new RequestSearchProductDTO { CategoryId = int.Parse(searchType), ProductName = searchName, PageIndex = pageIndex });
                 }
             }
             catch (ApiException e)
             {
                 var errorList = await e.GetContentAsAsync<Dictionary<string, string>>();
                 TempData["Error"] = errorList.First().Value;
-                return RedirectToAction("Index", "Products", new {pageIndex = 1});
+                return RedirectToAction("Index", "Products", new { pageIndex = 1 });
             }
 
             var categoryList = await _data.GetCategoriesAsync();
-            ViewData["CategoryId"] = new SelectList(categoryList, "Id", "Name");
+            ViewData["CategoryId"] = new SelectList(categoryList, "Id", "Name", searchType);
             ViewData["SearchName"] = searchName;
             ViewData["SearchType"] = searchType;
             return View(productsList);
@@ -91,7 +95,17 @@ namespace NashStoreClient.Controllers
             }
 
             var ratingList = await _data.GetRatingAsync(id.Value);
+            double avgRating;
+            if (ratingList.Count() == 0)
+            {
+                avgRating = 0;
+            }
+            else
+            {
+                avgRating = ratingList.Average(x => (int)x.Star);
+            }
             ViewData["ratingList"] = ratingList;
+            ViewData["avgRating"] =Math.Round(avgRating,1);
             return View(product);
         }
     }
