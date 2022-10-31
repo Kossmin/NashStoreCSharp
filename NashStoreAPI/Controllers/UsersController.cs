@@ -72,6 +72,10 @@ namespace NashStoreAPI.Controllers
                 UserName = model.Username
             };
             var result = await _userManager.CreateAsync(user, model.Password);
+            if(result.Errors.Count() > 0)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = result.Errors.First().Code });
+            }
             bool customerRoleExits = await _roleManager.RoleExistsAsync(UserRoles.Customer);
             if (!customerRoleExits)
             {
