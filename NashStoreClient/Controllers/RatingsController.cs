@@ -66,7 +66,7 @@ namespace NashStoreClient.Controllers
                 catch (Refit.ApiException e)
                 { 
                     var errorList = await e.GetContentAsAsync<Dictionary<string, string>>();
-                    TempData["Error"] = errorList.First().Value;
+                    TempData["Error"] = errorList?.FirstOrDefault().Value;
                     return RedirectToAction("Details", "Products", new { id = rating.ProductId });
                 }
             }
