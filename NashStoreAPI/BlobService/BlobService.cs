@@ -19,10 +19,10 @@ namespace NashPhaseOne.API.BlobService
             throw new NotImplementedException();
         }
 
-        public async Task UploadFileBlobAsync(IFormFile file)
+        public async Task UploadFileBlobAsync(IFormFile file, string fileName)
         {
             var containerClient = _blobServiceClient.GetBlobContainerClient(CONTAINER_NAME);
-            var blobClient = containerClient.GetBlobClient(file.FileName);
+            var blobClient = containerClient.GetBlobClient(fileName);
 
             await blobClient.UploadAsync(file.OpenReadStream(), new BlobHttpHeaders { ContentType = file.ContentType});
         }
