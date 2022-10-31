@@ -30,5 +30,23 @@ namespace DAO.Implements
         {
             return _nashStoreDbContext.Products.Include(x=> x.Category);
         }
+
+        public override async Task UpdateAsync(Product entity)
+        {
+            var product = _nashStoreDbContext.Products.AsNoTracking().FirstOrDefault(x=> x.Id == entity.Id);
+            if (entity.ImgUrls.Count() == 0)
+            {
+                entity.ImgUrls = product.ImgUrls;
+            }
+            if(entity.Version == product.Version)
+            {
+                entity.Version++;
+                _nashStoreDbContext.Products.Update(entity);
+            }
+            else
+            {
+                throw new TaskCanceledException("There is a change during the update process");
+            }
+        }
     }
 }

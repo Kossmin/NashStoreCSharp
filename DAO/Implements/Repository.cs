@@ -60,7 +60,7 @@ namespace DAO.Implements
             _nashStoreDbContext.Set<T>().AddAsync(entity);
         }
 
-        public async Task UpdateAsync(T entity)
+        public virtual async Task UpdateAsync(T entity)
         {
             _nashStoreDbContext.Set<T>().Update(entity);
         }
