@@ -11,6 +11,6 @@ namespace NashPhaseOne.DTO.Models.Product
         public int Id { get; set; }
         public string Name { get; set; } = "";
         public decimal Price { get; set; }
-        public List<string> ImgUrls { get; set; }
+        public List<string> ImgUrls { get; set; } = new List<string>();
     }
 }
