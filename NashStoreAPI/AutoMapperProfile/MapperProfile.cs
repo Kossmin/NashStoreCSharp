@@ -19,7 +19,8 @@ namespace NashPhaseOne.API.AutoMapperProfile
                 .ForMember(dest => dest.CategoryName, opt=> opt.MapFrom(src=>src.Category.Name))
                 .ForMember(dest => dest.ImgUrls, opt => opt.MapFrom(src => src.ImgUrls));
             CreateMap<Category, CategoryDTO>();
-            CreateMap<AdminProductDTO, Product>();
+            CreateMap<AdminAddProductDTO, Product>();
+            CreateMap<AdminUpdateProductDTO, Product>();
         }
     }
 }
