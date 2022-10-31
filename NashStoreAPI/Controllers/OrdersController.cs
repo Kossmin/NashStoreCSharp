@@ -94,7 +94,15 @@ namespace NashPhaseOne.API.Controllers
                     var prod = await _productRepository.GetByAsync(x => x.Id == orderDetail.ProductId);
                     prod.Quantity += orderDetail.Quantity;
 
-                    await _productRepository.UpdateAsync(prod);
+                    try
+                    {
+                        await _productRepository.UpdateAsync(prod);
+                    }
+                    catch (Exception e)
+                    {
+
+                        return BadRequest(new {message = e.Message});
+                    }
                 }
                 await _unitOfWork.CommitAsync();
                 return Ok();
@@ -162,7 +170,11 @@ namespace NashPhaseOne.API.Controllers
 
             foreach (var orderDetail in orderDetails)
             {
-                var prod = await _productRepository.GetByAsync(p => p.Id == orderDetail.ProductId);
+                var prod = await _productRepository.GetByAsync(p => p.Id == orderDetail.ProductId && !p.IsDeleted);
+                if(prod is null)
+                {
+                    return BadRequest(new { message = $"{orderDetail.Product.Name} is not available" });
+                }
                 if(prod.Quantity < orderDetail.Quantity)
                 {
                     return BadRequest(new { message = "This item don't have enough quantity for you!" });
@@ -172,7 +184,16 @@ namespace NashPhaseOne.API.Controllers
                 {
                     prod.IsDeleted = true;
                 }
-                await _productRepository.UpdateAsync(prod);
+                try
+                {
+                    await _productRepository.UpdateAsync(prod);
+
+                }
+                catch (Exception e)
+                {
+
+                    return BadRequest(new { message = e.Message });
+                }            
             }
 
             order.Status = OrderStatus.Paid;
