@@ -115,7 +115,7 @@ namespace NashPhaseOne.Client.Controllers
             {
                 var errorList = await e.GetContentAsAsync<Dictionary<string, string>>();
                 
-                TempData["Error"] = errorList?.First().Value;
+                TempData["Error"] = errorList?.FirstOrDefault(x=> x.Key == "message").Value;
                 
             }
             return RedirectToAction("Index", "Products");
