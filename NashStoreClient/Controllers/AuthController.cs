@@ -32,30 +32,40 @@ namespace NashStoreClient.Controllers
             {
                 return View();
             }
-            var token = await _data.LoginAsync(input);
-            if (token == null)
+            try
             {
-                ModelState.AddModelError("Error", "Your account is not valid. Try again!");
+                var token = await _data.LoginAsync(input);
+                if (token == null)
+                {
+                    ModelState.AddModelError("Error", "Your account is not valid. Try again!");
+                    return View();
+                }
+                else
+                {
+                    var claims = new List<Claim>();
+                    foreach (var role in token.UserInfo.Roles)
+                    {
+                        claims.Add(new Claim(ClaimTypes.Role, role));
+                    }
+                    claims.Add(new Claim("token", "Bearer " + token.TokenString));
+                    claims.Add(new Claim("expiration", token.Expiration.ToString()));
+                    claims.Add(new Claim("userid", token.UserInfo.Id.ToString()));
+                    claims.Add(new Claim("username", token.UserInfo.UserName));
+                    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                    var claimsPrinciple = new ClaimsPrincipal(claimsIdentity);
+                    await HttpContext.SignInAsync(claimsPrinciple);
+
+                    TempData["Message"] = "Login success";
+                    return RedirectToAction("Index", "Products");
+                }
+            }
+            catch (Refit.ApiException e)
+            {
+                var errorList = await e.GetContentAsAsync<Dictionary<string, string>>();
+                TempData["Error"] = errorList?.First().Value;
                 return View();
             }
-            else
-            {
-                var claims = new List<Claim>();
-                foreach (var role in token.UserInfo.Roles)
-                {
-                    claims.Add(new Claim(ClaimTypes.Role, role));
-                }
-                claims.Add(new Claim("token", "Bearer " + token.TokenString));
-                claims.Add(new Claim("expiration", token.Expiration.ToString()));
-                claims.Add(new Claim("userid", token.UserInfo.Id.ToString()));
-                claims.Add(new Claim("username", token.UserInfo.UserName));
-                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                var claimsPrinciple = new ClaimsPrincipal(claimsIdentity);
-                await HttpContext.SignInAsync(claimsPrinciple);
-
-                TempData["Message"] = "Login success";
-                return RedirectToAction("Index", "Products");
-            }
+            
         }
         [Authorize]
         public async Task<ActionResult> Logout()
@@ -78,7 +88,16 @@ namespace NashStoreClient.Controllers
             }
             if (ModelState.IsValid)
             {
-                await _data.RegisterAsync(registerModel);
+                try
+                {
+                    await _data.RegisterAsync(registerModel);
+                }
+                catch (Refit.ApiException e)
+                {
+                    var errorList = await e.GetContentAsAsync<Dictionary<string, string>>();
+                    TempData["Error"] = errorList?.FirstOrDefault(x => x.Key == "message").Value;
+                    return View();
+                }
             }
             else
             {
