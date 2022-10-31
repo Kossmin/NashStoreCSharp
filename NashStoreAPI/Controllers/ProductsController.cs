@@ -91,31 +91,28 @@ namespace NashStoreAPI.Controllers
         {
             try
             {
-                var responseData = new ViewListDTO<Product>();
+                IQueryable<Product> queries;
                 if (string.IsNullOrEmpty(requestModel.ProductName) && requestModel.CategoryId <= 0)
                 {
                     return NotFound();
                 }
                 else if (string.IsNullOrEmpty(requestModel.ProductName))
                 {
-                    responseData = await _productRepository.PagingAsync(_productRepository.GetMany(x => x.CategoryId == requestModel.CategoryId), requestModel.PageIndex); 
+                    queries = _productRepository.GetMany(x => x.CategoryId == requestModel.CategoryId && !x.IsDeleted); 
                 }
                 else if (requestModel.CategoryId == 0)
                 {
-                    var temp = _productRepository.GetMany(x => x.Name.ToUpper().Contains(requestModel.ProductName.ToUpper()));
-                    var tmp = temp.ToList();
-                    responseData = await _productRepository.PagingAsync(temp, requestModel.PageIndex);
+                    queries = _productRepository.GetMany(x => x.Name.ToUpper().Contains(requestModel.ProductName.ToUpper()) && !x.IsDeleted);
                 }
                 else
                 {
-                    responseData = await _productRepository.PagingAsync(_productRepository.GetMany(x => x.Name.ToUpper().Contains(requestModel.ProductName.ToUpper()) && x.CategoryId == requestModel.CategoryId), requestModel.PageIndex);
+                    queries = _productRepository.GetMany(x => (x.Name.ToUpper().Contains(requestModel.ProductName.ToUpper()) || x.CategoryId == requestModel.CategoryId) && !x.IsDeleted);
                 }
-
+                var responseData = await _productRepository.PagingAsync(queries, requestModel.PageIndex);
                 if(responseData == null)
                 {
                     return BadRequest(new { message = "Can't find" });
                 }
-
                 var products = _mapper.Map<List<ProductDTO>>(responseData.ModelDatas);
 
                 return Ok(new ViewListDTO<ProductDTO> { ModelDatas = products, MaxPage = responseData.MaxPage, PageIndex = requestModel.PageIndex });
