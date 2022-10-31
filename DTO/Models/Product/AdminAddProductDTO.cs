@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace NashPhaseOne.DTO.Models.Product
 {
-    public class AdminProductDTO
+    public class AdminAddProductDTO
     {
         public string Name { get; set; }
         public string Description { get; set; }
