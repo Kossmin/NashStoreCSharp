@@ -29,7 +29,7 @@ namespace NashStoreClient.DataAccess
         Task<List<RatingDTO>> GetRatingAsync(int id);
 
         [Post("/Ratings")]
-        Task<ActionResult> CreateRatingAsync(RatingDTO model, [Header("Authorization")] string bearerToken);
+        Task<IActionResult> CreateRatingAsync(RatingDTO model, [Header("Authorization")] string bearerToken);
 
         [Post("/Users/login")]
         Task<Token> LoginAsync(LoginModel input);
@@ -53,7 +53,7 @@ namespace NashStoreClient.DataAccess
         Task<List<ListOrderDetailsDTO>> GetPaidOrdersAsync(IdString userIdString, [Header("Authorization")] string bearerToken);
 
         [Post("/Orders/checkout")]
-        Task<ActionResult> CheckoutAsync(IdString userId);
+        Task<IActionResult> CheckoutAsync(IdString userId);
 
         [Patch("/OrderDetails/update")]
         Task UpdateOrderDetailAsync(OrderDetailDTO orderDetail);
