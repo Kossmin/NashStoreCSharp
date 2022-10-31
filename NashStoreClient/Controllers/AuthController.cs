@@ -61,8 +61,7 @@ namespace NashStoreClient.Controllers
             }
             catch (Refit.ApiException e)
             {
-                var errorList = await e.GetContentAsAsync<Dictionary<string, string>>();
-                TempData["Error"] = errorList?.First().Value;
+                TempData["Error"] = "Wrong password or username";
                 return View();
             }
             
