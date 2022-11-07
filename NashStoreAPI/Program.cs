@@ -1,6 +1,6 @@
 using AutoMapper;
 using Azure.Storage.Blobs;
-using BusinessObjects.Models;
+using NashPhaseOne.BusinessObjects.Models;
 using DAO.Implements;
 using DAO.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -110,6 +110,7 @@ builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 var app = builder.Build();
 
