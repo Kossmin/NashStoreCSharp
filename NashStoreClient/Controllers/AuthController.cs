@@ -61,7 +61,8 @@ namespace NashStoreClient.Controllers
             }
             catch (Refit.ApiException e)
             {
-                TempData["Error"] = "Wrong password or username";
+                var message = e.Content;
+                TempData["Error"] = message == null ? "Wrong password or username" : message;
                 return View();
             }
             
@@ -69,6 +70,8 @@ namespace NashStoreClient.Controllers
         [Authorize]
         public async Task<ActionResult> Logout()
         {
+            var token = User.Claims.FirstOrDefault(u => u.Type == "token").Value;
+            _data.Logout(token);
             await HttpContext.SignOutAsync();
             return RedirectToAction("Index", "Products");
         }
