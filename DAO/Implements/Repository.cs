@@ -1,4 +1,4 @@
-﻿using BusinessObjects.Models;
+﻿using NashPhaseOne.BusinessObjects.Models;
 using DAO.Interfaces;
 using DTO.Models;
 using Microsoft.EntityFrameworkCore;
@@ -49,7 +49,7 @@ namespace DAO.Implements
             }
             if(pageIndex > maxNumberOfPage)
             {
-                throw new IndexOutOfRangeException();
+                pageIndex = maxNumberOfPage;
             }
             var listResult = await records?.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
             return new ViewListDTO<T> { ModelDatas = listResult, MaxPage = maxNumberOfPage, PageIndex = pageIndex};

@@ -1,4 +1,4 @@
-﻿using BusinessObjects.Models;
+﻿using NashPhaseOne.BusinessObjects.Models;
 using DAO.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -28,13 +28,13 @@ namespace DAO.Implements
 
         public override IQueryable<Product> GetAll()
         {
-            return _nashStoreDbContext.Products.Include(x=> x.Category);
+            return _nashStoreDbContext.Products.Include(x=>x.Category);
         }
 
         public override async Task UpdateAsync(Product entity)
         {
             var product = _nashStoreDbContext.Products.AsNoTracking().FirstOrDefault(x=> x.Id == entity.Id);
-            if (entity.ImgUrls.Count() == 0)
+            if (entity.ImgUrls == null)
             {
                 entity.ImgUrls = product.ImgUrls;
             }
