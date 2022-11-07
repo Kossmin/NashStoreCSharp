@@ -5,13 +5,15 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using BusinessObjects.Models;
+using NashPhaseOne.BusinessObjects.Models;
 using DAO.Interfaces;
 using DTO.Models;
 using Microsoft.AspNetCore.Authorization;
 using NashPhaseOne.DTO.Models.Product;
 using AutoMapper;
 using NashPhaseOne.API.BlobHelper;
+using NashPhaseOne.DTO.Models;
+using NashPhaseOne.API.Filters;
 
 namespace NashStoreAPI.Controllers
 {
@@ -35,12 +37,13 @@ namespace NashStoreAPI.Controllers
 
         // GET: api/Products
         [HttpGet]
+        [TypeFilter(typeof(CustomAuthorizeFilter))]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<ViewListDTO<ProductDTO>>> GetAllProducts([FromQuery] int pageIndex)
+        public async Task<ActionResult<ViewListDTO<ProductDTO>>> GetAllProductsAsync([FromQuery] int pageIndex)
         {
             try
             {
-                var productsData = await _productRepository.PagingAsync(_productRepository.GetAll().OrderBy(x => x.IsDeleted ? 1 : 0), pageIndex);
+                var productsData = await _productRepository.PagingAsync(_productRepository.GetAll().OrderBy(x=>x.CategoryId).ThenBy(x => x.IsDeleted ? 1 : 0), pageIndex);
 
                 var products = _mapper.Map<List<ProductDTO>>(productsData.ModelDatas);
 
@@ -53,7 +56,7 @@ namespace NashStoreAPI.Controllers
         }
 
         [HttpGet("available")]
-        public async Task<ActionResult<ViewListDTO<ProductDTO>>> GetAvailableProducts([FromQuery] int pageIndex)
+        public async Task<ActionResult<ViewListDTO<ProductDTO>>> GetAvailableProductsAsync([FromQuery] int pageIndex)
         {
             try
             {
@@ -71,7 +74,7 @@ namespace NashStoreAPI.Controllers
 
         //[Authorize(Roles = "Admin")]
         [HttpGet("unavailable")]
-        public async Task<ActionResult<ViewListDTO<ProductDTO>>> GetUnAvailableProducts([FromQuery] int pageIndex)
+        public async Task<ActionResult<ViewListDTO<ProductDTO>>> GetUnAvailableProductsAsync([FromQuery] int pageIndex)
         {
             try
             {
@@ -87,7 +90,7 @@ namespace NashStoreAPI.Controllers
         }
 
         [HttpPost("search")]
-        public async Task<ActionResult<ViewListDTO<ProductDTO>>> GetProductByName([FromBody]RequestSearchProductDTO requestModel)
+        public async Task<ActionResult<ViewListDTO<ProductDTO>>> GetProductByNameAsync([FromBody]RequestSearchProductDTO requestModel)
         {
             try
             {
@@ -123,9 +126,48 @@ namespace NashStoreAPI.Controllers
             }   
         }
 
+        [HttpPost("searchadmin")]
+        [TypeFilter(typeof(CustomAuthorizeFilter))]
+        [Authorize(Roles ="Admin")]
+        public async Task<ActionResult<ViewListDTO<ProductDTO>>> GetProductByNameAdminAsync([FromBody] RequestSearchProductDTO requestModel)
+        {
+            try
+            {
+                IQueryable<Product> queries;
+                if (string.IsNullOrEmpty(requestModel.ProductName) && requestModel.CategoryId <= 0)
+                {
+                    return NotFound();
+                }
+                else if (string.IsNullOrEmpty(requestModel.ProductName))
+                {
+                    queries = _productRepository.GetMany(x => x.CategoryId == requestModel.CategoryId);
+                }
+                else if (requestModel.CategoryId == 0)
+                {
+                    queries = _productRepository.GetMany(x => x.Name.ToUpper().Contains(requestModel.ProductName.ToUpper()));
+                }
+                else
+                {
+                    queries = _productRepository.GetMany(x => (x.Name.ToUpper().Contains(requestModel.ProductName.ToUpper()) || x.CategoryId == requestModel.CategoryId));
+                }
+                var responseData = await _productRepository.PagingAsync(queries, requestModel.PageIndex);
+                if (responseData == null)
+                {
+                    return BadRequest(new { message = "Can't find" });
+                }
+                var products = _mapper.Map<List<ProductDTO>>(responseData.ModelDatas);
+
+                return Ok(new ViewListDTO<ProductDTO> { ModelDatas = products, MaxPage = responseData.MaxPage, PageIndex = requestModel.PageIndex });
+            }
+            catch (IndexOutOfRangeException ex)
+            {
+                return BadRequest("Can't find this page");
+            }
+        }
+
         // GET: api/Products/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<ProductDTO>> GetProduct([FromRoute]int id)
+        public async Task<ActionResult<ProductDTO>> GetProductAsync([FromRoute]int id)
         {
             var product = await _productRepository.GetByAsync(p => p.Id == id);
 
@@ -139,20 +181,68 @@ namespace NashStoreAPI.Controllers
         }
 
         [HttpPost("add")]
-        public async Task<ActionResult> Add([FromForm]AdminProductDTO model)
+        [Authorize(Roles ="Admin")]
+        [TypeFilter(typeof(CustomAuthorizeFilter))]
+        public async Task<ActionResult> AddAsync([FromForm]AdminAddProductDTO model)
         {
             var newProduct = _mapper.Map<Product>(model);
             newProduct.ImgUrls = new List<string>();
             await _productRepository.SaveAsync(newProduct);
 
-            foreach (var item in model.Imgs)
+            for(int i = 0; i < model.Imgs.Count(); i++)
             {
-                await _blobService.UploadFileBlobAsync(item);
-                newProduct.ImgUrls.Add(blobURL + item.FileName);
+                await _blobService.UploadFileBlobAsync(model.Imgs.ElementAt(i), newProduct.Id.ToString() + i);
+                newProduct.ImgUrls.Add(blobURL + newProduct.Id.ToString() + i);
             }
 
             await _unitOfWork.CommitAsync();
             return Ok();
+        }
+
+        [HttpPut]
+        [Authorize(Roles = "Admin")]
+        [TypeFilter(typeof(CustomAuthorizeFilter))]
+        public async Task<ActionResult> UpdateAsync([FromForm] AdminUpdateProductDTO model)
+        {
+            var product = _mapper.Map<Product>(model);
+            if (model.Imgs != null)
+            {
+                product.ImgUrls = new List<string>();
+                for (int i = 0; i < model.Imgs.Count(); i++)
+                {
+                    await _blobService.UploadFileBlobAsync(model.Imgs.ElementAt(i), product.Id.ToString() + i);
+                    product.ImgUrls.Add(blobURL + product.Id.ToString() + i);
+                }
+            }
+            try
+            {
+                await _productRepository.UpdateAsync(product);
+            }
+            catch (TaskCanceledException e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+            await _unitOfWork.CommitAsync();
+            return Ok();
+        }
+
+        [HttpPost("toggle")]
+        [Authorize(Roles = "Admin")]
+        [TypeFilter(typeof(CustomAuthorizeFilter))]
+        public async Task<ActionResult> ToggleProductStatusAsync([FromBody]IdString id)
+        {
+            var product = await _productRepository.GetByAsync(p => p.Id == int.Parse(id.Id));
+            if(product == null)
+            {
+                return NotFound("Can't find the product");
+            }
+            else
+            {
+                product.IsDeleted = !product.IsDeleted;
+                await _productRepository.UpdateAsync(product);
+                await _unitOfWork.CommitAsync();
+                return Ok();
+            }
         }
 
         //[HttpGet("Temp")]
