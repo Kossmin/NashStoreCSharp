@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using BusinessObjects.Models;
+using NashPhaseOne.BusinessObjects.Models;
 using DAO.Interfaces;
 using DTO.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -32,7 +32,7 @@ namespace NashStoreAPI.Controllers
         [Authorize]
         public async Task<IActionResult> Create(RatingDTO model)
         {
-            var userOrder = await _orderRepository.GetMany(o => o.UserId == model.UserId && o.Status != OrderStatus.Ordering).ToListAsync();
+            var userOrder = await _orderRepository.GetMany(o => o.UserId == model.UserId && o.Status != OrderStatus.Ordering && o.Status != OrderStatus.Pending).ToListAsync();
             var userOrderDetails = new List<OrderDetail>();
             foreach (var item in userOrder)
             {
@@ -41,7 +41,7 @@ namespace NashStoreAPI.Controllers
             var ifUserByThisProduct =userOrderDetails.FirstOrDefault(od => od.ProductId == model.ProductId) != null;
             if (ifUserByThisProduct) 
             { 
-                await _ratingRepository.SaveAsync(new BusinessObjects.Models.Rating { ProductId = model.ProductId, UserId = model.UserId, Comment = model.Comment, Star = model.Star });
+                await _ratingRepository.SaveAsync(new NashPhaseOne.BusinessObjects.Models.Rating { ProductId = model.ProductId, UserId = model.UserId, Comment = model.Comment, Star = model.Star });
             }
             else
             {
