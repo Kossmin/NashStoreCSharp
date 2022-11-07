@@ -15,7 +15,7 @@ using Refit;
 
 namespace NashStoreClient.Controllers
 {
-    [AllowAnonymous]
+    //[AllowAnonymous]
     public class ProductsController : Controller
     {
         private IData _data;
@@ -77,36 +77,44 @@ namespace NashStoreClient.Controllers
                 return NotFound();
             }
 
-            var product = await _data.GetProductByIdAsync(id.Value);
-            var cateName = product.CategoryName;
-            if (product == null)
+            try
             {
-                return NotFound();
-            }
+                var product = await _data.GetProductByIdAsync(id.Value);
+                var cateName = product.CategoryName;
+                if (product == null)
+                {
+                    return NotFound();
+                }
 
-            if (User.Identity.IsAuthenticated)
-            {
-                var userId = User.Claims.FirstOrDefault(u => u.Type == "userid").Value;
-                ViewData["userid"] = userId;
-            }
-            else
-            {
-                ViewData["userid"] = null;
-            }
+                if (User.Identity.IsAuthenticated)
+                {
+                    var userId = User.Claims.FirstOrDefault(u => u.Type == "userid").Value;
+                    ViewData["userid"] = userId;
+                }
+                else
+                {
+                    ViewData["userid"] = null;
+                }
 
-            var ratingList = await _data.GetRatingAsync(id.Value);
-            double avgRating;
-            if (ratingList.Count() == 0)
-            {
-                avgRating = 0;
+                var ratingList = await _data.GetRatingAsync(id.Value);
+                double avgRating;
+                if (ratingList.Count() == 0)
+                {
+                    avgRating = 0;
+                }
+                else
+                {
+                    avgRating = ratingList.Average(x => (int)x.Star);
+                }
+                ViewData["ratingList"] = ratingList;
+                ViewData["avgRating"] =Math.Round(avgRating,1);
+                return View(product);
             }
-            else
+            catch (ApiException e)
             {
-                avgRating = ratingList.Average(x => (int)x.Star);
+                TempData["Error"] = e.Content;
+                return RedirectToAction("Index");
             }
-            ViewData["ratingList"] = ratingList;
-            ViewData["avgRating"] =Math.Round(avgRating,1);
-            return View(product);
         }
     }
 }
