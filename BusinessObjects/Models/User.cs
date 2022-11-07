@@ -6,10 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BusinessObjects.Models
+namespace NashPhaseOne.BusinessObjects.Models
 {
     public class User : IdentityUser
     {
+        public bool IsBanned { get; set; } = false;
+
         public virtual List<Order> Orders { get; set; }
 
         public virtual List<Rating> Ratings { get; set; }

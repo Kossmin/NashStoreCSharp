@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BusinessObjects.Models
+namespace NashPhaseOne.BusinessObjects.Models
 {
     public class NashStoreDbContext : IdentityDbContext<User>
     {
@@ -43,6 +43,9 @@ namespace BusinessObjects.Models
 
             builder.Entity<Product>().Property(p => p.ImgUrls)
                 .HasConversion(s => JsonConvert.SerializeObject(s), s => JsonConvert.DeserializeObject<List<string>>(s));
+
+            
+
             base.OnModelCreating(builder);
         }
     }

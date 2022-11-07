@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BusinessObjects.Models
+namespace NashPhaseOne.BusinessObjects.Models
 {
     public class Category
     {
@@ -14,7 +14,7 @@ namespace BusinessObjects.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public string Name { get; set; }
-
+        public bool IsDeleted { get; set; } = false;
         public virtual List<Product> Products { get; set; }
     }
 }
