@@ -3,11 +3,15 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NashPhaseOne.DAO.Interfaces;
 using NashPhaseOne.DTO.Models.Order;
+using NashPhaseOne.BusinessObjects.Models;
+using Microsoft.AspNetCore.Authorization;
+using NashPhaseOne.API.Filters;
 
 namespace NashPhaseOne.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [TypeFilter(typeof(CustomAuthorizeFilter))]
     public class OrderDetailsController : ControllerBase
     {
         private readonly IOrderDetailRepository _orderDetailRepository;
@@ -24,6 +28,7 @@ namespace NashPhaseOne.API.Controllers
         }
 
         [HttpPatch("update")]
+        [Authorize]
         public async Task<ActionResult> Update([FromBody]OrderDetailDTO orderDetail)
         {
             var currentOrderDetail  = await _orderDetailRepository.GetByAsync(or => or.Id == orderDetail.Id);
@@ -45,6 +50,7 @@ namespace NashPhaseOne.API.Controllers
         }
 
         [HttpDelete]
+        [Authorize]
         public async Task<ActionResult> Delete(int id)
         {
             var orderDetail = await _orderDetailRepository.GetByAsync(o => o.Id == id);
@@ -54,7 +60,7 @@ namespace NashPhaseOne.API.Controllers
             }
             var order = await _orderRepository.GetByAsync(o => o.Id == orderDetail.OrderId);
             
-            if(order.Status != BusinessObjects.Models.OrderStatus.Ordering)
+            if(order.Status != NashPhaseOne.BusinessObjects.Models.OrderStatus.Ordering)
             {
                 return BadRequest(new { message = "This order is already paid can't be deleted" });
             }
