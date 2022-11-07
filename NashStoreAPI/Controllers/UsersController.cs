@@ -1,4 +1,4 @@
-﻿using BusinessObjects.Models;
+﻿using NashPhaseOne.BusinessObjects.Models;
 using DTO.Models.Authen;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -8,6 +8,13 @@ using NashPhaseOne.DTO.Models.Authen;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using DTO.Models;
+using DAO.Interfaces;
+using AutoMapper;
+using NashPhaseOne.API.Statics;
+using NashPhaseOne.API.Filters;
+using Microsoft.AspNetCore.Authorization;
+using NashPhaseOne.DTO.Models;
 
 namespace NashStoreAPI.Controllers
 {
@@ -18,12 +25,31 @@ namespace NashStoreAPI.Controllers
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IConfiguration _configuration;
+        private readonly IUserRepository _userRepository;
+        private readonly IMapper _mapper;
 
-        public UsersController(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration)
+        public UsersController(IMapper mapper, UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration, IUserRepository userRepository)
         {
+            _mapper = mapper;
+            _userRepository = userRepository;
             _userManager = userManager;
             _roleManager = roleManager;
             _configuration = configuration;
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        [TypeFilter(typeof(CustomAuthorizeFilter))]
+        public async Task<ViewListDTO<UserInfo>> GetUsers([FromQuery]int pageIndex = 1)
+        {
+            var users = _userManager.Users;
+            var listusers = await _userRepository.PagingAsync(users, pageIndex);
+            if(listusers == null)
+            {
+                return new ViewListDTO<UserInfo>();
+            }
+            var castedList = _mapper.Map<List<UserInfo>>(listusers.ModelDatas);
+            return new ViewListDTO<UserInfo> { ModelDatas = castedList, PageIndex = listusers.PageIndex, MaxPage = listusers.MaxPage };
         }
 
         [HttpPost]
@@ -33,9 +59,14 @@ namespace NashStoreAPI.Controllers
             var user = await _userManager.FindByNameAsync(model.Username);
             if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
             {
+                if (user.IsBanned)
+                {
+                    return Unauthorized("Your account has been banned!");
+                }
                 var userRoles = await _userManager.GetRolesAsync(user);
                 var authClaims = new List<Claim>
                 {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id),
                     new Claim(ClaimTypes.Name, user.UserName),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 };
@@ -46,7 +77,7 @@ namespace NashStoreAPI.Controllers
                 }
 
                 var token = GetToken(authClaims);
-
+                ListOfActiveUsers.ActiveUsers.Add(user.Id);
                 return Ok(new Token
                 {
                     TokenString = new JwtSecurityTokenHandler().WriteToken(token),
@@ -120,6 +151,42 @@ namespace NashStoreAPI.Controllers
                 await _userManager.AddToRoleAsync(user, UserRoles.Customer);
             }
             return Ok(new Response { Status = "Success", Message = "User created successfully!" });
+        }
+
+        [HttpDelete]
+        [Route("logout")]
+        [Authorize]
+        [TypeFilter(typeof(CustomAuthorizeFilter))]
+        public async Task<IActionResult> Logout()
+        {
+            var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+            if(userId == null)
+            {
+                return BadRequest();
+            }
+            else
+            {
+                ListOfActiveUsers.ActiveUsers.Remove(userId);
+            }
+            return Ok();
+        }
+
+        [HttpPut("toggle")]
+        [Authorize(Roles = "Admin")]
+        [TypeFilter(typeof(CustomAuthorizeFilter))]
+        public async Task<IActionResult> ToggleUserStatus(IdString idString)
+        {
+            var user = await _userManager.FindByIdAsync(idString.Id);
+            if(user == null)
+            {
+                return BadRequest(new { message = "Can't find" });
+            }
+            else
+            {
+                user.IsBanned = !user.IsBanned;
+                await _userManager.UpdateAsync(user);
+            }
+            return Ok();
         }
 
         private JwtSecurityToken GetToken(List<Claim> authClaims)
