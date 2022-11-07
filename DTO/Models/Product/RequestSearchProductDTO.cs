@@ -4,6 +4,6 @@
     {
         public int PageIndex { get; set; }
         public string ProductName { get; set; } = "";
-        public int CategoryId { get; set; } = 0;
+        public int? CategoryId { get; set; } = 0;
     }
 }
