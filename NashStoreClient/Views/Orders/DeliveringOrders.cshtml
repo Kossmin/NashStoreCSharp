@@ -1,4 +1,4 @@
-﻿@model NashPhaseOne.DTO.Models.Order.ListOrderDetailsDTO
+﻿@model List<NashPhaseOne.DTO.Models.Order.ListOrderDetailsDTO>
 @*
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
@@ -6,42 +6,107 @@
     var isNull = ViewData["cartDto"] == null;
     var totalAmount = 0m;
 }
+@Html.Partial("_OrderNav")
+<h1>Delivering Orders</h1>
 @if (isNull)
 {
-    <h1>No Order</h1>
+    <div class="container">
+        <h3>No Order</h3>
+    </div>
 }else{
-<table class="table">
-    <thead>
-        <tr>
-            <th>Image</th>
-            <th>Name</th>
-            <th>Unit Price</th>
-            <th>Quantity</th>
-            <th>Total Price</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.OrderDetails)
-            {
-                   totalAmount += (item.Quantity * item.Price);
+    <div class="accordion" id="accordionPanelsStayOpenExample">
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="panelsStayOpen-headingOne">
+          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+            <strong>Order Number #@Model.First().Id &nbsp;&nbsp;</strong> <span class="opacity-50">@String.Format("{0:dd/MM/yyyy}",Model.First().OrderDate.ToLongDateString()) </span>
+          </button>
+        </h2>
+        <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show" aria-labelledby="panelsStayOpen-headingOne">
+          <div class="accordion-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Unit Price</th>
+                            <th>Quantity</th>
+                            <th>Total Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.First().OrderDetails)
+                            {
+                                   totalAmount += (item.Quantity * item.Price);
              
-            <tr>
-                <td>
-                    <img width="20%" class="img-thumbnail" src="@item.Product.ImgUrls.First()"/>
-                </td>
-                <td>@item.Product.Name</td>
-                <td>@item.Price</td>
-                <td id="@item.Id-quantity">@item.Quantity</td>
-                <td>@(item.Quantity * item.Price)</td>
-            </tr>
+                            <tr>
+                                <td>
+                                    <img width="20%" class="img-thumbnail" src="@item.Product.ImgUrls.First()"/>
+                                </td>
+                                <td>@item.Product.Name</td>
+                                <td>@item.Price</td>
+                                <td id="@item.Id-quantity">@item.Quantity</td>
+                                <td>@(item.Quantity * item.Price)</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td></td>
+                            <td colspan="3">Total</td>
+                            <td>@totalAmount</td>
+                        </tr>
+                    </tfoot>
+                </table>
+          </div>
+        </div>
+      </div>
+      @foreach (var order in Model.Skip(1))
+        {
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="panelsStayOpen-headingTwo">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#order-@order.Id" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
+                    <strong>Order Number #@order.Id &nbsp;&nbsp;</strong> <span class="opacity-50">@String.Format("{0:dd/MM/yyyy}",order.OrderDate.ToLongDateString())</span>
+                  </button>
+                </h2>
+                <div id="order-@order.Id" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-headingTwo">
+                  <div class="accordion-body">
+                      <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Unit Price</th>
+                            <th>Quantity</th>
+                            <th>Total Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in order.OrderDetails)
+                            {
+                                   totalAmount += (item.Quantity * item.Price);
+             
+                            <tr>
+                                <td>
+                                    <img width="20%" class="img-thumbnail" src="@item.Product.ImgUrls.First()"/>
+                                </td>
+                                <td>@item.Product.Name</td>
+                                <td>@item.Price</td>
+                                <td id="@item.Id-quantity">@item.Quantity</td>
+                                <td>@(item.Quantity * item.Price)</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td><a onclick="confirm('Are you sure about this?')" asp-action="CancelOrder" asp-controller="Orders" asp-route-id="@order.Id">Cancel Order</a></td>
+                            <td colspan="3">Total</td>
+                            <td>@totalAmount</td>
+                        </tr>
+                    </tfoot>
+                </table>
+                  </div>
+                </div>
+            </div>
         }
-    </tbody>
-    <tfoot>
-        <tr>
-            <td colspan="4">Total</td>
-            <td>@totalAmount</td>
-        </tr>
-    </tfoot>
-</table>
+</div>
 }
-

@@ -7,11 +7,11 @@
     var totalAmount = 0m;
 }
 @Html.Partial("_OrderNav")
-
+<h1>Canceled Orders</h1>
 @if (isNull)
 {
     <div class="container">
-        <h1>No Order</h1>
+        <h3>No Order</h3>
     </div>
 }else{
     <div class="accordion" id="accordionPanelsStayOpenExample">

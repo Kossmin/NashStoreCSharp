@@ -7,7 +7,7 @@
     var totalAmount = 0m;
 }
 @Html.Partial("_OrderNav")
-<h1>Received Orders </h1>
+<h1>Pending Orders</h1>
 @if (isNull)
 {
     <div class="container">
@@ -51,7 +51,7 @@
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td></td>
+                            <td><a onclick="confirm('Are you sure about this?')" asp-action="CancelOrder" asp-controller="Orders" asp-route-id="@Model.First().Id">Cancel Order</a></td>
                             <td colspan="3">Total</td>
                             <td>@totalAmount</td>
                         </tr>
@@ -110,4 +110,3 @@
         }
 </div>
 }
-

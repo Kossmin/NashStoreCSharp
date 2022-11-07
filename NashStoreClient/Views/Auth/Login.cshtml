@@ -10,19 +10,20 @@
     }
 }
 <div class="container">
-    <div class="row justify-content-center">
+    <div class="row justify-content-center pt-4">
         <div class="col-5">
             <form asp-route-returnUrl="@returnUrl" asp-action="Login" method="post">
               <div class="mb-3">
                 <label for="exampleInputEmail1" class="form-label">Username:</label>
                 <input required asp-for=Username type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
-                <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+                @Html.ValidationMessageFor(x=>x.Username)
+
               </div>
               <div class="mb-3">
                 <label for="exampleInputPassword1" class="form-label">Password:</label>
                 <input required asp-for="Password" type="password" class="form-control" id="exampleInputPassword1">
+                @Html.ValidationMessageFor(x=>x.Password)
               </div>
-              @Html.ValidationSummary()
               <button type="submit" class="btn btn-primary">Sign In</button>
               <p>Don't have account? <a asp-action="Register">Register</a></p>
             </form>

@@ -4,14 +4,24 @@
 @{
 }
 
-<ul class="nav">
-  <li class="nav-item">
-    <a asp-action="Cart" class="nav-link" >Cart</a>
-  </li>
-  <li class="nav-item">
-    <a asp-action="PaidOrders" class="nav-link">Paid Order</a>
-  </li>
-  <li class="nav-item">
-    <a asp-action="CanceledOrders" class="nav-link">Canceled Order</a>
-  </li>
-</ul>
+<div class="container mt-3 mb-3">
+    <div class="row">
+        <ul class="nav">
+          <li class="nav-item">
+            <a asp-action="Cart" class="nav-link" >Cart</a>
+          </li>
+          <li class="nav-item">
+            <a asp-action="PaidOrders" class="nav-link">Done Order</a>
+          </li>
+          <li class="nav-item">
+            <a asp-action="PendingOrders" class="nav-link">Pending Order</a>
+          </li>
+          <li class="nav-item">
+            <a asp-action="DeliveringOrders" class="nav-link">Delivering Order</a>
+          </li>
+          <li class="nav-item">
+            <a asp-action="CanceledOrders" class="nav-link">Canceled Order</a>
+          </li>
+        </ul>
+    </div>
+</div>
