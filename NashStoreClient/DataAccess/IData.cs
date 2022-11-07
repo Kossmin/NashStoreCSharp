@@ -49,19 +49,25 @@ namespace NashStoreClient.DataAccess
         [Post("/Orders/delivering")]
         Task<List<ListOrderDetailsDTO>> GetDeliveringOrdersAsync(IdString userIdString, [Header("Authorization")] string bearerToken);
 
-        [Post("/Orders/paid")]
-        Task<List<ListOrderDetailsDTO>> GetPaidOrdersAsync(IdString userIdString, [Header("Authorization")] string bearerToken);
+        [Post("/Orders/done")]
+        Task<List<ListOrderDetailsDTO>> GetDoneOrdersAsync(IdString userIdString, [Header("Authorization")] string bearerToken);
+        
+        [Post("/Orders/pending")]
+        Task<List<ListOrderDetailsDTO>> GetPendingOrdersAsync(IdString idString, [Header("Authorization")] string bearerToken);
 
         [Post("/Orders/checkout")]
-        Task<IActionResult> CheckoutAsync(IdString userId);
+        Task<IActionResult> CheckoutAsync(IdString userId, [Header("Authorization")] string bearerToken);
 
         [Patch("/OrderDetails/update")]
-        Task UpdateOrderDetailAsync(OrderDetailDTO orderDetail);
+        Task UpdateOrderDetailAsync(OrderDetailDTO orderDetail, [Header("Authorization")] string bearerToken);
 
         [Delete("/OrderDetails")]
-        Task DeleteOrderDetailAsync(int id);
+        Task DeleteOrderDetailAsync(int id, [Header("Authorization")] string bearerToken);
 
         [Post("/Users/register")]
         Task<Response> RegisterAsync(RegisterModel registerModel);
+
+        [Delete("/Users/logout")]
+        Task<IActionResult> Logout([Header("Authorization")] string bearerToken);
     }
 }
