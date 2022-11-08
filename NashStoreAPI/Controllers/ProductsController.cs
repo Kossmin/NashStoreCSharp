@@ -43,7 +43,8 @@ namespace NashStoreAPI.Controllers
         {
             try
             {
-                var productsData = await _productRepository.PagingAsync(_productRepository.GetAll().OrderBy(x=>x.CategoryId).ThenBy(x => x.IsDeleted ? 1 : 0), pageIndex);
+                var query = _productRepository.GetAll();
+                var productsData = await _productRepository.PagingAsync(query.OrderBy(x=>x.CategoryId).ThenBy(x => x.IsDeleted ? 1 : 0), pageIndex);
 
                 var products = _mapper.Map<List<ProductDTO>>(productsData.ModelDatas);
 

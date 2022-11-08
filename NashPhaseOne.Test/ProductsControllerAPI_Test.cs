@@ -14,7 +14,7 @@ using NashPhaseOne.DTO.Models;
 
 namespace NashPhaseOne.Test
 {
-    public class ProductControllerAPI_Test
+    public class ProductsControllerAPI_Test
     {
         IQueryable<ProductDTO> DUMMY_DATA_PRODUCTDTOS = new List<ProductDTO>
         {
@@ -54,14 +54,23 @@ namespace NashPhaseOne.Test
 
         Category DUMMY_DATA_CATEGORY = new Category { Id = 1, Name = "Laptop" };
 
-        ProductsController controller;
+        private readonly ProductsController _controller;
+        private readonly Mock<IProductRepository> _productRepository;
+        private readonly Mock<IUnitOfWork> _unitOfWork;
+        private readonly Mock<IBlobService> _blobContainer;
+        private readonly Mock<IMapper> _mapper;
 
-        public ProductControllerAPI_Test()
+        public ProductsControllerAPI_Test()
         {
             foreach (var item in DUMMY_DATA_PRODUCTS)
             {
                 item.Category = DUMMY_DATA_CATEGORY;
             }
+            _productRepository = new Mock<IProductRepository>();
+            _unitOfWork = new Mock<IUnitOfWork>();
+            _blobContainer = new Mock<IBlobService>();
+            _mapper = new Mock<IMapper>();
+            _controller = new ProductsController(_mapper.Object, _productRepository.Object, _unitOfWork.Object, _blobContainer.Object);
         }
 
         //[Fact]
@@ -86,25 +95,14 @@ namespace NashPhaseOne.Test
         [Fact]
         public async void GetAllProducts_ValidCall()
         {
-            var productRepo = new Mock<IProductRepository>();
-            productRepo.Setup(x => x.GetAll()).Returns(DUMMY_DATA_PRODUCTS);
+            var pagingOutput = new ViewListDTO<Product> { MaxPage = 2, PageIndex = 1, ModelDatas = DUMMY_DATA_PRODUCTS.ToList() };
+            _productRepository.Setup(x => x.GetAll()).Returns(DUMMY_DATA_PRODUCTS);
+            _productRepository.Setup(x => x.PagingAsync(It.IsAny<IQueryable<Product>>(), 1, 4)).ReturnsAsync(pagingOutput);
+            _mapper.Setup(x => x.Map<List<ProductDTO>>(pagingOutput.ModelDatas));
 
-            var listProduct = new ViewListDTO<Product>
-            {
-                MaxPage = 2,
-                ModelDatas = DUMMY_DATA_PRODUCTS.ToList(),
-                PageIndex = 1
-            };
-            productRepo.Setup(x => x.PagingAsync(DUMMY_DATA_PRODUCTS, 1, 4)).ReturnsAsync(listProduct);
-            var unitOfWork = new Mock<IUnitOfWork>();
-            var mapper = new Mock<IMapper>();
-            var blobContainer = new Mock<IBlobService>();
-            var convertedResult = mapper.Object.Map<ViewListDTO<ProductDTO>>(listProduct);
+            var result = await _controller.GetAllProductsAsync(1);
 
-            var controller = new ProductsController(mapper.Object, productRepo.Object, unitOfWork.Object, blobContainer.Object);
-
-            var result = await controller.GetAllProductsAsync(1);
-            Assert.Equal(result.Value.ModelDatas, convertedResult.ModelDatas);
+            Assert.Equal(new OkObjectResult(pagingOutput).GetType(), result.Result.GetType());
         }
 
         //[Fact]
@@ -134,27 +132,44 @@ namespace NashPhaseOne.Test
         [Fact]
         public async void SearchProduct_ValidCall()
         {
-            string searchName = "e";
-            var model = new RequestSearchProductDTO { CategoryId = 0 , ProductName = searchName};
+            var pagingOutput = new ViewListDTO<Product> { MaxPage = 1, ModelDatas = DUMMY_DATA_PRODUCTS.ToList(), PageIndex = 1 };
+            var model = new RequestSearchProductDTO { CategoryId = 2 , ProductName = null, PageIndex = 1};
 
-            var productRepo = new Mock<IProductRepository>();
-            var unitOfWork = new Mock<IUnitOfWork>();
-            var blobContainer = new Mock<IBlobService>();
-            var mapper = new Mock<IMapper>();
+            _productRepository.Setup(x => x.GetMany(It.IsAny<Expression<Func<Product, bool>>>())).Returns(DUMMY_DATA_PRODUCTS);
+            _productRepository.Setup(x => x.PagingAsync(DUMMY_DATA_PRODUCTS, 1, 4))
+                .ReturnsAsync(pagingOutput);
+            _mapper.Setup(x => x.Map<List<ProductDTO>>(pagingOutput.ModelDatas)).Returns(DUMMY_DATA_PRODUCTDTOS.ToList());
 
+            var result = await _controller.GetProductByNameAsync(model);
 
-            Expression<Func<Product, bool>> expression = x => x.Name.ToUpper().Contains(searchName.ToUpper());
-            productRepo.Setup(x => x.GetMany(It.IsAny<Expression<Func<Product, bool>>>())).Returns(DUMMY_DATA_PRODUCTS);
-            //productRepo.Setup(x => x.PagingAsync(DUMMY_DATA_PRODUCTS, 1, 4))
-            //    .ReturnsAsync(new ViewListDTO<Product> { MaxPage = 1, ModelDatas = DUMMY_DATA_PRODUCTS.ToList(), PageIndex = 1 });
+            Assert.Equal(new OkObjectResult(pagingOutput).GetType(), result.Result.GetType());
+        }
 
-            controller = new ProductsController(mapper.Object, productRepo.Object, unitOfWork.Object, blobContainer.Object);
+        [Fact]
+        public async void SearchProduct_InvalidCall_EmptySearchDTO()
+        {
+            var pagingOutput = new ViewListDTO<Product> { MaxPage = 1, ModelDatas = DUMMY_DATA_PRODUCTS.ToList(), PageIndex = 1 };
+            var model = new RequestSearchProductDTO { CategoryId = 0, ProductName = null, PageIndex = 1 };
 
-            var result = await controller.GetProductByNameAsync(model);
+            var result = await _controller.GetProductByNameAsync(model);
 
-            var expected = DUMMY_DATA_PRODUCTDTOS.Where(x => x.Name.ToLower().Contains(searchName));
+            Assert.Equal(new NotFoundResult().GetType(), result.Result.GetType());
+        }
 
-            Assert.Equal(expected, result.Value.ModelDatas);
+        [Fact]
+        public async void SearchProduct_InvalidCall_EmptyReturnList()
+        {
+            var pagingOutput = new ViewListDTO<Product> { MaxPage = 1, ModelDatas = DUMMY_DATA_PRODUCTS.ToList(), PageIndex = 1 };
+            var model = new RequestSearchProductDTO { CategoryId = 0, ProductName = null, PageIndex = 1 };
+
+            _productRepository.Setup(x => x.GetMany(It.IsAny<Expression<Func<Product, bool>>>())).Returns(DUMMY_DATA_PRODUCTS);
+            _productRepository.Setup(x => x.PagingAsync(DUMMY_DATA_PRODUCTS, 1, 4))
+                .ReturnsAsync((ViewListDTO<Product>)null);
+            _mapper.Setup(x => x.Map<List<ProductDTO>>(pagingOutput.ModelDatas)).Returns(DUMMY_DATA_PRODUCTDTOS.ToList());
+
+            var result = await _controller.GetProductByNameAsync(model);
+
+            Assert.Equal(new NotFoundResult().GetType(), result.Result.GetType());
         }
 
         [Fact]
@@ -166,14 +181,12 @@ namespace NashPhaseOne.Test
             var mapper = new Mock<IMapper>();
             int id = 1;
 
-            controller = new ProductsController(mapper.Object, productRepo.Object, unitOfWork.Object, blobContainer.Object);
-
             mapper.Setup(x => x.Map<ProductDTO>(DUMMY_DATA_PRODUCTS.FirstOrDefault(x => x.Id == id))).Returns(DUMMY_DATA_PRODUCTDTOS.FirstOrDefault(x => x.Id == id));
             productRepo.Setup(x => x.GetByAsync(It.IsAny<Expression<Func<Product, bool>>>())).ReturnsAsync(DUMMY_DATA_PRODUCTS.FirstOrDefault(x => x.Id == id));
 
             var expected = DUMMY_DATA_PRODUCTDTOS.FirstOrDefault(x => x.Id == id);
 
-            var result = await controller.GetProductAsync(id);
+            var result = await _controller.GetProductAsync(id);
 
             Assert.Equal(expected, result.Value);
         }
@@ -181,20 +194,14 @@ namespace NashPhaseOne.Test
         [Fact]
         public async void Detail_InValidCall()
         {
-            var productRepo = new Mock<IProductRepository>();
-            var unitOfWork = new Mock<IUnitOfWork>();
-            var blobContainer = new Mock<IBlobService>();
-            var mapper = new Mock<IMapper>();
             int id = -1;
 
-            controller = new ProductsController(mapper.Object, productRepo.Object, unitOfWork.Object, blobContainer.Object);
-
-            mapper.Setup(x => x.Map<ProductDTO>(DUMMY_DATA_PRODUCTS.FirstOrDefault(x => x.Id == id))).Returns(DUMMY_DATA_PRODUCTDTOS.FirstOrDefault(x => x.Id == id));
-            productRepo.Setup(x => x.GetByAsync(It.IsAny<Expression<Func<Product, bool>>>())).ReturnsAsync(DUMMY_DATA_PRODUCTS.FirstOrDefault(x => x.Id == id));
+            _mapper.Setup(x => x.Map<ProductDTO>(DUMMY_DATA_PRODUCTS.FirstOrDefault(x => x.Id == id))).Returns(DUMMY_DATA_PRODUCTDTOS.FirstOrDefault(x => x.Id == id));
+            _productRepository.Setup(x => x.GetByAsync(It.IsAny<Expression<Func<Product, bool>>>())).ReturnsAsync(DUMMY_DATA_PRODUCTS.FirstOrDefault(x => x.Id == id));
 
             var expected = new NotFoundResult();
 
-            var result = await controller.GetProductAsync(id);
+            var result = await _controller.GetProductAsync(id);
 
             Assert.Equal(expected.GetType(), result.Result.GetType());
         }
@@ -202,16 +209,11 @@ namespace NashPhaseOne.Test
         [Fact]
         public async void Add_InValidCall()
         {
-            var productRepo = new Mock<IProductRepository>();
-            var unitOfWork = new Mock<IUnitOfWork>();
-            var blobContainer = new Mock<IBlobService>();
-            var mapper = new Mock<IMapper>();
             var userModel = DUMMY_DATA_PRODUCTS.First();
             var userAdminModel = DUMMY_DATA_ADMIN_ADD_PRODUCTS.Skip(1).First();
-            controller = new ProductsController(mapper.Object, productRepo.Object, unitOfWork.Object, blobContainer.Object);
-            mapper.Setup(x=>x.Map<Product>(userAdminModel)).Returns(userModel);
+            _mapper.Setup(x=>x.Map<Product>(userAdminModel)).Returns(userModel);
 
-            var result = async () => await controller.AddAsync(userAdminModel);
+            var result = async () => await _controller.AddAsync(userAdminModel);
 
             var expected = new OkResult();
             Assert.ThrowsAnyAsync<Exception>(result);
@@ -220,17 +222,12 @@ namespace NashPhaseOne.Test
         [Fact]
         public async void Add_ValidCall()
         {
-            var productRepo = new Mock<IProductRepository>();
-            var unitOfWork = new Mock<IUnitOfWork>();
-            var blobContainer = new Mock<IBlobService>();
-            var mapper = new Mock<IMapper>();
             var userModel = DUMMY_DATA_PRODUCTS.First();
             var userAdminModel = DUMMY_DATA_ADMIN_ADD_PRODUCTS.First();
 
-            controller = new ProductsController(mapper.Object, productRepo.Object, unitOfWork.Object, blobContainer.Object);
-            mapper.Setup(x => x.Map<Product>(userAdminModel)).Returns(userModel);
+            _mapper.Setup(x => x.Map<Product>(userAdminModel)).Returns(userModel);
 
-            var result = await controller.AddAsync(userAdminModel);
+            var result = await _controller.AddAsync(userAdminModel);
 
             var expected = new OkResult();
             Assert.Equal(expected.GetType(), result.GetType());
@@ -239,19 +236,14 @@ namespace NashPhaseOne.Test
         [Fact]
         public async void Update_ImgIsNull()
         {
-            var productRepo = new Mock<IProductRepository>();
-            var unitOfWork = new Mock<IUnitOfWork>();
-            var blobContainer = new Mock<IBlobService>();
-            var mapper = new Mock<IMapper>();
             var userModel = DUMMY_DATA_PRODUCTS.First();
             var userAdminModel = DUMMY_DATA_ADMIN_UPDATE_PRODUCTS.First();
 
             userAdminModel.Imgs = null;
 
-            controller = new ProductsController(mapper.Object, productRepo.Object, unitOfWork.Object, blobContainer.Object);
-            mapper.Setup(x => x.Map<Product>(userAdminModel)).Returns(userModel);
+            _mapper.Setup(x => x.Map<Product>(userAdminModel)).Returns(userModel);
 
-            await controller.UpdateAsync(userAdminModel);
+            await _controller.UpdateAsync(userAdminModel);
 
             Assert.True(userModel.ImgUrls.Count() != 0);
         }
@@ -259,10 +251,6 @@ namespace NashPhaseOne.Test
         [Fact]
         public async void Update_ImgIsNotNull()
         {
-            var productRepo = new Mock<IProductRepository>();
-            var unitOfWork = new Mock<IUnitOfWork>();
-            var blobContainer = new Mock<IBlobService>();
-            var mapper = new Mock<IMapper>();
             var userModel = DUMMY_DATA_PRODUCTS.First();
             var userAdminModel = DUMMY_DATA_ADMIN_UPDATE_PRODUCTS.First();
 
@@ -272,10 +260,9 @@ namespace NashPhaseOne.Test
                 userAdminModel.Imgs = new List<IFormFile> { file };
             }
 
-            controller = new ProductsController(mapper.Object, productRepo.Object, unitOfWork.Object, blobContainer.Object);
-            mapper.Setup(x => x.Map<Product>(userAdminModel)).Returns(userModel);
+            _mapper.Setup(x => x.Map<Product>(userAdminModel)).Returns(userModel);
 
-            await controller.UpdateAsync(userAdminModel);
+            await _controller.UpdateAsync(userAdminModel);
 
             Assert.True(userModel.ImgUrls.Count()  == 1);
         }
@@ -283,18 +270,13 @@ namespace NashPhaseOne.Test
         [Fact]
         public async void ToggleStatus_ValidCall()
         {
-            var productRepo = new Mock<IProductRepository>();
-            var unitOfWork = new Mock<IUnitOfWork>();
-            var blobContainer = new Mock<IBlobService>();
-            var mapper = new Mock<IMapper>();
-            controller = new ProductsController(mapper.Object, productRepo.Object, unitOfWork.Object, blobContainer.Object);
             var userModel = DUMMY_DATA_PRODUCTS.First();
 
-            productRepo.Setup(x => x.GetByAsync(It.IsAny<Expression<Func<Product, bool>>>())).ReturnsAsync(userModel);
+            _productRepository.Setup(x => x.GetByAsync(It.IsAny<Expression<Func<Product, bool>>>())).ReturnsAsync(userModel);
 
             var expected = !userModel.IsDeleted;
 
-            await controller.ToggleProductStatusAsync(new IdString { Id = userModel.Id.ToString() });
+            await _controller.ToggleProductStatusAsync(new IdString { Id = userModel.Id.ToString() });
 
             var result = userModel.IsDeleted;
 
@@ -304,18 +286,13 @@ namespace NashPhaseOne.Test
         [Fact]
         public async void ToggleStatus_InValidCall()
         {
-            var productRepo = new Mock<IProductRepository>();
-            var unitOfWork = new Mock<IUnitOfWork>();
-            var blobContainer = new Mock<IBlobService>();
-            var mapper = new Mock<IMapper>();
-            controller = new ProductsController(mapper.Object, productRepo.Object, unitOfWork.Object, blobContainer.Object);
             var userModel = DUMMY_DATA_PRODUCTS.First();
 
-            productRepo.Setup(x => x.GetByAsync(It.IsAny<Expression<Func<Product, bool>>>())).ReturnsAsync((Product)null);
+            _productRepository.Setup(x => x.GetByAsync(It.IsAny<Expression<Func<Product, bool>>>())).ReturnsAsync((Product)null);
 
             var expected = new NotFoundObjectResult(null);
 
-            var result = await controller.ToggleProductStatusAsync(new IdString { Id = 6.ToString() });
+            var result = await _controller.ToggleProductStatusAsync(new IdString { Id = 6.ToString() });
 
             Assert.Equal(expected.GetType(), result.GetType());
         }

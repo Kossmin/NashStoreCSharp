@@ -37,7 +37,8 @@ namespace NashStoreAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetCategories()
         {
-            var cateResponse = await _categoryRepository.GetAll().Where(x=> !x.IsDeleted).ToListAsync();
+            var queries = _categoryRepository.GetAll();
+            var cateResponse = queries.Where(x=> !x.IsDeleted).ToList();
             var categories = _mapper.Map<List<CategoryDTO>>(cateResponse);
             
             return categories;
@@ -59,11 +60,11 @@ namespace NashStoreAPI.Controllers
         [TypeFilter(typeof(CustomAuthorizeFilter))]
         public async Task<ActionResult> ToggleStatus([FromBody] IdString id)
         {
-            if (string.IsNullOrEmpty(id.Id))
+            var cate = await _categoryRepository.GetByAsync(c => c.Id == int.Parse(id.Id));
+            if(cate == null)
             {
                 return BadRequest(new { message = "Can't find" });
             }
-            var cate = await _categoryRepository.GetByAsync(c => c.Id == int.Parse(id.Id));
             cate.IsDeleted = !cate.IsDeleted;
             if (cate.IsDeleted)
             {
