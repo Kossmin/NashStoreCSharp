@@ -41,60 +41,44 @@ namespace NashStoreAPI.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ViewListDTO<ProductDTO>>> GetAllProductsAsync([FromQuery] int pageIndex)
         {
-            try
-            {
-                var query = _productRepository.GetAll();
-                var productsData = await _productRepository.PagingAsync(query.OrderBy(x=>x.CategoryId).ThenBy(x => x.IsDeleted ? 1 : 0), pageIndex);
+            var query = _productRepository.GetAll().OrderBy(x => x.CategoryId).ThenBy(x => x.IsDeleted ? 1 : 0);
+            var productsData = await _productRepository.PagingAsync(query, pageIndex);
 
-                var products = _mapper.Map<List<ProductDTO>>(productsData.ModelDatas);
+            var products = _mapper.Map<List<ProductDTO>>(productsData.ModelDatas);
 
-                return Ok(new ViewListDTO<ProductDTO> { ModelDatas = products, MaxPage = productsData.MaxPage, PageIndex = pageIndex});
-            }
-            catch (IndexOutOfRangeException ex)
-            {
-                return BadRequest("Can't find this page");
-            }
+            return Ok(new ViewListDTO<ProductDTO> { ModelDatas = products, MaxPage = productsData.MaxPage, PageIndex = pageIndex});
         }
 
         [HttpGet("available")]
         public async Task<ActionResult<ViewListDTO<ProductDTO>>> GetAvailableProductsAsync([FromQuery] int pageIndex)
         {
-            try
-            {
                 var productsData = await _productRepository.PagingAsync(_productRepository.GetMany(p => p.IsDeleted == false), pageIndex);
 
                 var products = _mapper.Map<List<ProductDTO>>(productsData.ModelDatas);
 
                 return Ok(new ViewListDTO<ProductDTO> { ModelDatas = products, MaxPage = productsData.MaxPage, PageIndex = pageIndex });
-            }
-            catch (IndexOutOfRangeException ex)
-            {
-                return BadRequest("Can't find this page");
-            }
         }
 
         //[Authorize(Roles = "Admin")]
-        [HttpGet("unavailable")]
-        public async Task<ActionResult<ViewListDTO<ProductDTO>>> GetUnAvailableProductsAsync([FromQuery] int pageIndex)
-        {
-            try
-            {
-                var productsData = await _productRepository.PagingAsync(_productRepository.GetMany(p => p.IsDeleted == true), pageIndex);
-                var products = _mapper.Map<List<ProductDTO>>(productsData.ModelDatas);
+        //[HttpGet("unavailable")]
+        //public async Task<ActionResult<ViewListDTO<ProductDTO>>> GetUnAvailableProductsAsync([FromQuery] int pageIndex)
+        //{
+        //    try
+        //    {
+        //        var productsData = await _productRepository.PagingAsync(_productRepository.GetMany(p => p.IsDeleted == true), pageIndex);
+        //        var products = _mapper.Map<List<ProductDTO>>(productsData.ModelDatas);
 
-                return Ok(new ViewListDTO<ProductDTO> { ModelDatas = products, MaxPage = productsData.MaxPage, PageIndex = pageIndex });
-            }
-            catch (IndexOutOfRangeException ex)
-            {
-                return BadRequest("Can't find this page");
-            }
-        }
+        //        return Ok(new ViewListDTO<ProductDTO> { ModelDatas = products, MaxPage = productsData.MaxPage, PageIndex = pageIndex });
+        //    }
+        //    catch (IndexOutOfRangeException ex)
+        //    {
+        //        return BadRequest("Can't find this page");
+        //    }
+        //}
 
         [HttpPost("search")]
         public async Task<ActionResult<ViewListDTO<ProductDTO>>> GetProductByNameAsync([FromBody]RequestSearchProductDTO requestModel)
         {
-            try
-            {
                 IQueryable<Product> queries;
                 if (string.IsNullOrEmpty(requestModel.ProductName) && requestModel.CategoryId <= 0)
                 {
@@ -119,12 +103,7 @@ namespace NashStoreAPI.Controllers
                 }
                 var products = _mapper.Map<List<ProductDTO>>(responseData.ModelDatas);
 
-                return Ok(new ViewListDTO<ProductDTO> { ModelDatas = products, MaxPage = responseData.MaxPage, PageIndex = requestModel.PageIndex });
-            }
-            catch (IndexOutOfRangeException ex)
-            {
-                return BadRequest("Can't find this page");
-            }   
+                return Ok(new ViewListDTO<ProductDTO> { ModelDatas = products, MaxPage = responseData.MaxPage, PageIndex = requestModel.PageIndex });  
         }
 
         [HttpPost("searchadmin")]

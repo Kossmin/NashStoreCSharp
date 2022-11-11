@@ -76,12 +76,13 @@ namespace NashStoreAPI.Controllers
                     authClaims.Add(new Claim(ClaimTypes.Role, userRole));
                 }
 
-                var token = GetToken(authClaims);
-                ListOfActiveUsers.ActiveUsers.Add(user.Id);
+                var tokenClaims = GetToken(authClaims);
+                var token = new JwtSecurityTokenHandler().WriteToken(tokenClaims);
+                ListOfActiveTokens.ActiveTokens.Add(token);
                 return Ok(new Token
                 {
-                    TokenString = new JwtSecurityTokenHandler().WriteToken(token),
-                    Expiration = token.ValidTo,
+                    TokenString = token,
+                    Expiration = tokenClaims.ValidTo,
                     UserInfo = new UserDTO { Id = user.Id , Roles = (List<string>)userRoles, UserName = user.NormalizedUserName},
                 });
             }
@@ -159,14 +160,14 @@ namespace NashStoreAPI.Controllers
         [TypeFilter(typeof(CustomAuthorizeFilter))]
         public async Task<IActionResult> Logout()
         {
-            var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
-            if(userId == null)
+            var token = HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1];
+            if(token == null)
             {
                 return BadRequest();
             }
             else
             {
-                ListOfActiveUsers.ActiveUsers.Remove(userId);
+                ListOfActiveTokens.ActiveTokens.Remove(token);
             }
             return Ok();
         }

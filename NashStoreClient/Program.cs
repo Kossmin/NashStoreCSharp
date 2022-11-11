@@ -1,19 +1,20 @@
-using BusinessObjects.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using NashStoreClient.DataAccess;
 using Refit;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews().AddViewLocalization();
 
-builder.Services.AddDbContext<NashStoreDbContext>(options =>
-{
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-});
+builder.Services.AddLocalization(opt => opt.ResourcesPath = "Resource");
+
+builder.Services.AddMvc()
+    .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
+    .AddDataAnnotationsLocalization();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(opt =>
@@ -44,6 +45,16 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+var cultures = new List<CultureInfo> {
+    new CultureInfo("en"),
+    new CultureInfo("vi")
+};
+app.UseRequestLocalization(options => {
+    options.DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture("en");
+    options.SupportedCultures = cultures;
+    options.SupportedUICultures = cultures;
+});
 
 app.MapControllerRoute(
     name: "default",

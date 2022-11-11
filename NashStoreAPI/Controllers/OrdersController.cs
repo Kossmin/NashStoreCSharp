@@ -19,17 +19,15 @@ namespace NashPhaseOne.API.Controllers
     public class OrdersController : ControllerBase
     {
         private IOrderRepository _orderRepository;
-        private IOrderDetailRepository _orderDetailRepository;
         private IUnitOfWork _unitOfWork;
         private IMapper _mapper;
         private IProductRepository _productRepository;
 
-        public OrdersController(IProductRepository productRepository, IMapper mapper, IUnitOfWork unitOfWork, IOrderDetailRepository orderDetailRepository, IOrderRepository orderRepository)
+        public OrdersController(IProductRepository productRepository, IMapper mapper, IUnitOfWork unitOfWork, IOrderRepository orderRepository)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
             _orderRepository = orderRepository;
-            _orderDetailRepository = orderDetailRepository;
             _productRepository = productRepository;
         }
 
@@ -68,7 +66,12 @@ namespace NashPhaseOne.API.Controllers
         [TypeFilter(typeof(CustomAuthorizeFilter))]
         public async Task<List<OrderStatisticDTO>> GetOrderStatistics()
         {
-            var orders = await _orderRepository.GetMany(x=>x.Status != OrderStatus.Ordering).ToListAsync();
+            var query = _orderRepository.GetMany(x => x.Status != OrderStatus.Ordering);
+            if(query == null)
+            {
+                return null;
+            }
+            var orders = query.ToList();
             var paidOrders = orders.Where(x => x.Status == OrderStatus.Done);
             var delivering = orders.Where(x => x.Status == OrderStatus.Delivering);
             var delivered = orders.Where(x => x.Status == OrderStatus.Delivered);
@@ -88,6 +91,10 @@ namespace NashPhaseOne.API.Controllers
         public async Task<MonthlyIncomeStatisticDTO> GetMonthlyIncomeStatistics()
         {
             var orders = _orderRepository.GetMany(x => x.Status != OrderStatus.Ordering && x.OrderDate.Year == DateTime.Now.Year);
+            if(orders == null)
+            {
+                return null;
+            }
             var months = new MonthlyIncomeStatisticDTO { MonthlyIncome = new Dictionary<int, decimal> { 
                 { 1, 0 },
                 { 2, 0 },
@@ -123,7 +130,7 @@ namespace NashPhaseOne.API.Controllers
 
             if(order != null)
             {
-                var mappedOrder = _mapper.Map<Order, ListOrderDetailsDTO>(order);
+                var mappedOrder = _mapper.Map<ListOrderDetailsDTO>(order);
                 return mappedOrder;
             }
             else
@@ -178,7 +185,7 @@ namespace NashPhaseOne.API.Controllers
                     {
                         await _productRepository.UpdateAsync(prod);
                     }
-                    catch (Exception e)
+                    catch (TaskCanceledException e)
                     {
 
                         return BadRequest(new {message = e.Message});
@@ -194,11 +201,11 @@ namespace NashPhaseOne.API.Controllers
         [TypeFilter(typeof(CustomAuthorizeFilter))]
         public async Task<List<ListOrderDetailsDTO>> GetCanceledOrder([FromBody] IdString userId)
         {
-            var order = _orderRepository.GetMany(o => o.Status == OrderStatus.Canceled && o.UserId == userId.Id).Include(x => x.OrderDetails).ThenInclude(x => x.Product).ToList();
+            var order = _orderRepository.GetMany(o => o.Status == OrderStatus.Canceled && o.UserId == userId.Id)?.Include(x => x.OrderDetails).ThenInclude(x => x.Product).ToList();
 
             if (order != null)
             {
-                var mappedOrder = _mapper.Map<List<Order>, List<ListOrderDetailsDTO>>(order);
+                var mappedOrder = _mapper.Map<List<ListOrderDetailsDTO>>(order);
                 return mappedOrder;
             }
             else
@@ -212,11 +219,11 @@ namespace NashPhaseOne.API.Controllers
         [TypeFilter(typeof(CustomAuthorizeFilter))]
         public async Task<List<ListOrderDetailsDTO>> GetPendingOrder([FromBody] IdString userId)
         {
-            var order = _orderRepository.GetMany(o => o.Status == OrderStatus.Pending && o.UserId == userId.Id).Include(x => x.OrderDetails).ThenInclude(x => x.Product).ToList();
+            var order = _orderRepository.GetMany(o => o.Status == OrderStatus.Pending && o.UserId == userId.Id)?.Include(x => x.OrderDetails).ThenInclude(x => x.Product).ToList();
 
             if (order != null)
             {
-                var mappedOrder = _mapper.Map<List<Order>, List<ListOrderDetailsDTO>>(order);
+                var mappedOrder = _mapper.Map<List<ListOrderDetailsDTO>>(order);
                 return mappedOrder;
             }
             else
@@ -230,11 +237,11 @@ namespace NashPhaseOne.API.Controllers
         [TypeFilter(typeof(CustomAuthorizeFilter))]
         public async Task<List<ListOrderDetailsDTO>> GetDoneOrder([FromBody] IdString userId)
         {
-            var order = _orderRepository.GetMany(o => o.Status == OrderStatus.Done && o.UserId == userId.Id).Include(x=>x.OrderDetails).ThenInclude(x=>x.Product).ToList();
+            var order = _orderRepository.GetMany(o => o.Status == OrderStatus.Done && o.UserId == userId.Id)?.Include(x=>x.OrderDetails).ThenInclude(x=>x.Product).ToList();
 
             if (order != null)
             {
-                var mappedOrder = _mapper.Map<List<Order>, List<ListOrderDetailsDTO>>(order);
+                var mappedOrder = _mapper.Map<List<ListOrderDetailsDTO>>(order);
                 return mappedOrder;
             }
             else
@@ -248,11 +255,11 @@ namespace NashPhaseOne.API.Controllers
         [TypeFilter(typeof(CustomAuthorizeFilter))]
         public async Task<List<ListOrderDetailsDTO>> GetDeliveringOrder([FromBody] IdString userId)
         {
-            var order = _orderRepository.GetMany(o => o.Status == OrderStatus.Delivering && o.UserId == userId.Id).Include(x => x.OrderDetails).ThenInclude(x => x.Product).ToList();
+            var order = _orderRepository.GetMany(o => o.Status == OrderStatus.Delivering && o.UserId == userId.Id)?.Include(x => x.OrderDetails).ThenInclude(x => x.Product).ToList();
 
             if (order != null)
             {
-                var mappedOrder = _mapper.Map<List<Order>, List<ListOrderDetailsDTO>>(order);
+                var mappedOrder = _mapper.Map<List<ListOrderDetailsDTO>>(order);
                 return mappedOrder;
             }
             else
@@ -267,6 +274,11 @@ namespace NashPhaseOne.API.Controllers
         public async Task<ActionResult> Checkout([FromBody]IdString userId)
         {
             var order = await _orderRepository.GetByAsync(o => o.Status == OrderStatus.Ordering && o.UserId == userId.Id);
+
+            if(order == null)
+            {
+                return BadRequest("Can't find");
+            }
 
             var orderDetails = order.OrderDetails;
 

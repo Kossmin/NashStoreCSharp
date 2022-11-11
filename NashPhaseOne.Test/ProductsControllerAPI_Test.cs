@@ -105,29 +105,18 @@ namespace NashPhaseOne.Test
             Assert.Equal(new OkObjectResult(pagingOutput).GetType(), result.Result.GetType());
         }
 
-        //[Fact]
-        //public async void GetAllProductsCustomer_ValidCall()
-        //{
-        //    var productRepo = new Mock<IProductRepository>();
-        //    productRepo.Setup(x => x.GetAll()).Returns(DUMMY_DATA_PRODUCTS);
+        [Fact]
+        public async void GetAllProductsCustomer_ValidCall()
+        {
+            var pagingOutput = new ViewListDTO<Product> { MaxPage = 2, PageIndex = 1, ModelDatas = DUMMY_DATA_PRODUCTS.ToList() };
+            _productRepository.Setup(x => x.GetAll()).Returns(DUMMY_DATA_PRODUCTS);
+            _productRepository.Setup(x => x.PagingAsync(It.IsAny<IQueryable<Product>>(), 1, 4)).ReturnsAsync(pagingOutput);
+            _mapper.Setup(x => x.Map<List<ProductDTO>>(pagingOutput.ModelDatas));
 
-        //    var listProduct = new ViewListDTO<Product>
-        //    {
-        //        MaxPage = 2,
-        //        ModelDatas = DUMMY_DATA_PRODUCTS.ToList(),
-        //        PageIndex = 1
-        //    };
-        //    productRepo.Setup(x => x.PagingAsync(DUMMY_DATA_PRODUCTS, 1, 4)).ReturnsAsync(listProduct);
-        //    var unitOfWork = new Mock<IUnitOfWork>();
-        //    var mapper = new Mock<IMapper>();
-        //    var blobContainer = new Mock<IBlobService>();
-        //    var convertedResult = mapper.Object.Map<ViewListDTO<ProductDTO>>(listProduct);
+            var result = await _controller.GetAvailableProductsAsync(1);
 
-        //    var controller = new ProductsController(mapper.Object, productRepo.Object, unitOfWork.Object, blobContainer.Object);
-
-        //    var result = await controller.GetAllProducts(1);
-        //    Assert.Equal(result.Value.ModelDatas, convertedResult.ModelDatas);
-        //}
+            Assert.Equal(new OkObjectResult(pagingOutput).GetType(), result.Result.GetType());
+        }
 
         [Fact]
         public async void SearchProduct_ValidCall()
@@ -173,16 +162,56 @@ namespace NashPhaseOne.Test
         }
 
         [Fact]
+        public async void SearchProductAdmin_ValidCall()
+        {
+            var pagingOutput = new ViewListDTO<Product> { MaxPage = 1, ModelDatas = DUMMY_DATA_PRODUCTS.ToList(), PageIndex = 1 };
+            var model = new RequestSearchProductDTO { CategoryId = 2, ProductName = null, PageIndex = 1 };
+
+            _productRepository.Setup(x => x.GetMany(It.IsAny<Expression<Func<Product, bool>>>())).Returns(DUMMY_DATA_PRODUCTS);
+            _productRepository.Setup(x => x.PagingAsync(DUMMY_DATA_PRODUCTS, 1, 4))
+                .ReturnsAsync(pagingOutput);
+            _mapper.Setup(x => x.Map<List<ProductDTO>>(pagingOutput.ModelDatas)).Returns(DUMMY_DATA_PRODUCTDTOS.ToList());
+
+            var result = await _controller.GetProductByNameAdminAsync(model);
+
+            Assert.Equal(new OkObjectResult(pagingOutput).GetType(), result.Result.GetType());
+        }
+
+        [Fact]
+        public async void SearchProductAdmin_InvalidCall_EmptySearchDTO()
+        {
+            var pagingOutput = new ViewListDTO<Product> { MaxPage = 1, ModelDatas = DUMMY_DATA_PRODUCTS.ToList(), PageIndex = 1 };
+            var model = new RequestSearchProductDTO { CategoryId = 0, ProductName = null, PageIndex = 1 };
+
+            var result = await _controller.GetProductByNameAdminAsync(model);
+
+            Assert.Equal(new NotFoundResult().GetType(), result.Result.GetType());
+        }
+
+        [Fact]
+        public async void SearchProductAdmin_InvalidCall_EmptyReturnList()
+        {
+            var pagingOutput = new ViewListDTO<Product> { MaxPage = 1, ModelDatas = DUMMY_DATA_PRODUCTS.ToList(), PageIndex = 1 };
+            var model = new RequestSearchProductDTO { CategoryId = 0, ProductName = null, PageIndex = 1 };
+
+            _productRepository.Setup(x => x.GetMany(It.IsAny<Expression<Func<Product, bool>>>())).Returns(DUMMY_DATA_PRODUCTS);
+            _productRepository.Setup(x => x.PagingAsync(DUMMY_DATA_PRODUCTS, 1, 4))
+                .ReturnsAsync((ViewListDTO<Product>)null);
+            _mapper.Setup(x => x.Map<List<ProductDTO>>(pagingOutput.ModelDatas)).Returns(DUMMY_DATA_PRODUCTDTOS.ToList());
+
+            var result = await _controller.GetProductByNameAdminAsync(model);
+
+            Assert.Equal(new NotFoundResult().GetType(), result.Result.GetType());
+        }
+
+        [Fact]
         public async void Detail_ValidCall()
         {
-            var productRepo = new Mock<IProductRepository>();
-            var unitOfWork = new Mock<IUnitOfWork>();
-            var blobContainer = new Mock<IBlobService>();
-            var mapper = new Mock<IMapper>();
             int id = 1;
-
-            mapper.Setup(x => x.Map<ProductDTO>(DUMMY_DATA_PRODUCTS.FirstOrDefault(x => x.Id == id))).Returns(DUMMY_DATA_PRODUCTDTOS.FirstOrDefault(x => x.Id == id));
-            productRepo.Setup(x => x.GetByAsync(It.IsAny<Expression<Func<Product, bool>>>())).ReturnsAsync(DUMMY_DATA_PRODUCTS.FirstOrDefault(x => x.Id == id));
+            var castResult = DUMMY_DATA_PRODUCTDTOS.FirstOrDefault(x => x.Id == id);
+            var getByOutput = DUMMY_DATA_PRODUCTS.FirstOrDefault(x => x.Id == id);
+            _productRepository.Setup(x => x.GetByAsync(It.IsAny<Expression<Func<Product, bool>>>())).ReturnsAsync(getByOutput);
+            _mapper.Setup(x => x.Map<ProductDTO>(getByOutput)).Returns(castResult);
 
             var expected = DUMMY_DATA_PRODUCTDTOS.FirstOrDefault(x => x.Id == id);
 
@@ -234,7 +263,7 @@ namespace NashPhaseOne.Test
         }
 
         [Fact]
-        public async void Update_ImgIsNull()
+        public async void Update_ValidCall_ImgIsNull()
         {
             var userModel = DUMMY_DATA_PRODUCTS.First();
             var userAdminModel = DUMMY_DATA_ADMIN_UPDATE_PRODUCTS.First();
@@ -249,7 +278,7 @@ namespace NashPhaseOne.Test
         }
 
         [Fact]
-        public async void Update_ImgIsNotNull()
+        public async void Update_ValidCall_ImgIsNotNull()
         {
             var userModel = DUMMY_DATA_PRODUCTS.First();
             var userAdminModel = DUMMY_DATA_ADMIN_UPDATE_PRODUCTS.First();
@@ -265,6 +294,26 @@ namespace NashPhaseOne.Test
             await _controller.UpdateAsync(userAdminModel);
 
             Assert.True(userModel.ImgUrls.Count()  == 1);
+        }
+
+        [Fact]
+        public async void Update_InvalidCall_Concurrent()
+        {
+            var userModel = DUMMY_DATA_PRODUCTS.First();
+            var userAdminModel = DUMMY_DATA_ADMIN_UPDATE_PRODUCTS.First();
+
+            using (var stream = File.OpenRead("../../../Assets/Windows 10_ (5).jpg"))
+            {
+                var file = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name));
+                userAdminModel.Imgs = new List<IFormFile> { file };
+            }
+
+            _mapper.Setup(x => x.Map<Product>(userAdminModel)).Returns(userModel);
+            _productRepository.Setup(x => x.UpdateAsync(userModel)).Throws(new TaskCanceledException());
+
+            var result = await _controller.UpdateAsync(userAdminModel);
+
+            Assert.Equal(new BadRequestObjectResult("Concurrent").GetType(), result.GetType());
         }
 
         [Fact]

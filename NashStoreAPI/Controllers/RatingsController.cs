@@ -33,12 +33,16 @@ namespace NashStoreAPI.Controllers
         public async Task<IActionResult> Create(RatingDTO model)
         {
             var userOrder = await _orderRepository.GetMany(o => o.UserId == model.UserId && o.Status != OrderStatus.Ordering && o.Status != OrderStatus.Pending).ToListAsync();
+            if(userOrder == null)
+            {
+                return NotFound();
+            }
             var userOrderDetails = new List<OrderDetail>();
             foreach (var item in userOrder)
             {
                 userOrderDetails.AddRange(item.OrderDetails);
             }
-            var ifUserByThisProduct =userOrderDetails.FirstOrDefault(od => od.ProductId == model.ProductId) != null;
+            var ifUserByThisProduct = userOrderDetails.FirstOrDefault(od => od.ProductId == model.ProductId) != null;
             if (ifUserByThisProduct) 
             { 
                 await _ratingRepository.SaveAsync(new NashPhaseOne.BusinessObjects.Models.Rating { ProductId = model.ProductId, UserId = model.UserId, Comment = model.Comment, Star = model.Star });

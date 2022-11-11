@@ -2,7 +2,6 @@
 
 @model DTO.Models.ViewListDTO<NashPhaseOne.DTO.Models.Product.ProductDTO>
 @inject IViewLocalizer Localizer
-@inject IHtmlLocalizer<NashStoreClient.Controllers.ProductsController> HtmlLocalizer 
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -15,7 +14,7 @@
                     <option value="">Categories</option>
                 </select>
                 <input placeholder="Search products by name" class="form-control" type="text" name="searchName"/>
-                <button class="form-control btn-outline-primary">@HtmlLocalizer["Search"]</button>
+                <button class="form-control btn-outline-primary">@Resources.Resources.Search</button>
             </div>
         </form>
     </div>
@@ -32,7 +31,7 @@
                             <div class="card-body">
                             <h5 class="card-title">@item.Name</h5>
                             <p class="card-text" style="height: 52px; overflow: hidden">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                            <a asp-action="Details" asp-route-id="@item.Id"  class="btn btn-primary">Details</a>
+                            <a asp-action="Details" asp-route-id="@item.Id"  class="btn btn-primary">@Resources.Resources.Details</a>
                           </div>
                         </div>
                     </div>
@@ -45,13 +44,13 @@
         @if(Model.MaxPage > 1 && Model.PageIndex != 1)
         {
             <li class="page-item">
-                @Html.ActionLink("Previous", "Index", "Products",new {pageIndex = Model.PageIndex - 1}, new {@class = "page-link"})
+                @Html.ActionLink(@Resources.Resources.Previous, "Index", "Products",new {pageIndex = Model.PageIndex - 1}, new {@class = "page-link"})
             </li>
         }
         else
         {
             <li class="page-item disabled">
-                @Html.ActionLink("Previous", "Index", "Products",new {pageIndex = 1}, new {@class = "page-link"})
+                @Html.ActionLink(@Resources.Resources.Previous, "Index", "Products",new {pageIndex = 1}, new {@class = "page-link"})
             </li>
         }
         @{
@@ -133,13 +132,13 @@
         @if(Model.PageIndex != Model.MaxPage)
         {
             <li class="page-item">
-                @Html.ActionLink("Next", "Index", "Products",new {pageIndex = Model.PageIndex + 1}, new {@class = "page-link"})
+                @Html.ActionLink(@Resources.Resources.Next, "Index", "Products",new {pageIndex = Model.PageIndex + 1}, new {@class = "page-link"})
             </li>
         }
         else
         {
             <li class="page-item disabled">
-                @Html.ActionLink("Next", "Index", "Products",new {pageIndex = 1}, new {@class = "page-link"})
+                @Html.ActionLink(@Resources.Resources.Next, "Index", "Products",new {pageIndex = 1}, new {@class = "page-link"})
             </li>
         }
   </ul>

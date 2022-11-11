@@ -19,17 +19,17 @@ namespace NashPhaseOne.API.Filters
         public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
         {
             var userClaims = context.HttpContext.User;
-
-            var id = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if(id != null)
+            var token = context.HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1];
+            if(token != null)
             {
+                var id = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 var user = await _userManager.FindByIdAsync(id);
                 if (user.IsBanned)
                 {
                     context.Result = new UnauthorizedObjectResult(new {message = "Your account has been banned"});
                 }
             }
-            if (!ListOfActiveUsers.ActiveUsers.Contains(id))
+            if (!ListOfActiveTokens.ActiveTokens.Contains(token))
             {
                 context.Result = new ForbidResult();
             }
