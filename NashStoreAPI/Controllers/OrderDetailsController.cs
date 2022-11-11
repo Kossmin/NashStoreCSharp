@@ -32,8 +32,8 @@ namespace NashPhaseOne.API.Controllers
         public async Task<ActionResult> Update([FromBody]OrderDetailDTO orderDetail)
         {
             var currentOrderDetail  = await _orderDetailRepository.GetByAsync(or => or.Id == orderDetail.Id);
-            var currentProduct = await _productRepository.GetByAsync(or => or.Id == currentOrderDetail.ProductId);
-            if(currentOrderDetail == null)
+            var currentProduct = await _productRepository.GetByAsync(or => or.Id == currentOrderDetail.ProductId && !or.IsDeleted);
+            if(currentOrderDetail == null || currentProduct == null)
             {
                 return BadRequest(new { message = "You are trying to update an invalid order" });
             }else if(currentProduct.Quantity < orderDetail.Quantity)

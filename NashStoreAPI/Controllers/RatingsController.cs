@@ -32,7 +32,7 @@ namespace NashStoreAPI.Controllers
         [Authorize]
         public async Task<IActionResult> Create(RatingDTO model)
         {
-            var userOrder = await _orderRepository.GetMany(o => o.UserId == model.UserId && o.Status != OrderStatus.Ordering && o.Status != OrderStatus.Pending).ToListAsync();
+            var userOrder = _orderRepository.GetMany(o => o.UserId == model.UserId && o.Status != OrderStatus.Ordering && o.Status != OrderStatus.Pending)?.ToList();
             if(userOrder == null)
             {
                 return NotFound();
